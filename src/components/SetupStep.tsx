@@ -168,8 +168,8 @@ export function SetupStep({
           <div className="space-y-5">
             <TutorialStep step={1}>
               <p className="text-xs leading-snug text-neutral-500">
-                KI-Chat öffnen — sie fragt kurz nach Thema und Wunsch, bevor
-                der Fragensatz erstellt wird.
+                KI-Chat öffnen — kurz sagen was du übst, PDF anhängen, fertig.
+                Optional: „will tunen“ für mehr Kontrolle.
               </p>
               <div className="space-y-2">
                 <AiChatOpenButton options={aiChatOptions} />
