@@ -1,35 +1,33 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { CheckCircle2, LockKeyhole } from "lucide-react";
-import { AnswerPanel } from "./components/AnswerPanel";
-import { QuestionPanel } from "./components/QuestionPanel";
-import { SessionSidebar } from "./components/SessionSidebar";
-import { SolutionPanel } from "./components/SolutionPanel";
+import { useCallback, useEffect, useState } from "react";
+import { ActiveStep } from "./components/ActiveStep";
+import { DoneStep } from "./components/DoneStep";
+import { ReadyStep } from "./components/ReadyStep";
+import { SetupStep } from "./components/SetupStep";
 import {
   buildExportFromSession,
   copyText,
   downloadText,
 } from "./domain/export";
 import { normalizePayload } from "./domain/payload";
+import { PAYLOAD_GENERATION_PROMPT } from "./domain/payloadSchema";
 import {
   createInitialSessionState,
-  getSessionBadge,
   getSolutionRevealsRemaining,
   isQuestionVisible,
   type SessionState,
 } from "./domain/session";
+import {
+  createMockInitialSession,
+  getMockConfig,
+} from "./domain/mock";
+import { getWizardStep } from "./domain/wizard";
+
+const mockConfig = getMockConfig();
 
 function getProgressLabel(state: SessionState): string {
   const total = state.payload?.questions.length ?? 0;
   if (!total) return "-- / --";
   return `${Math.min(state.currentIndex + 1, total)} / ${total}`;
-}
-
-function getPayloadStatus(state: SessionState): string {
-  if (!state.payload) return "Keine Aufgabe geladen.";
-  if (!state.started) {
-    return "Payload geladen. Fragen bleiben bis zum Start gesperrt.";
-  }
-  return "Payload geladen.";
 }
 
 function finishRound(prev: SessionState): SessionState {
@@ -44,6 +42,8 @@ function finishRound(prev: SessionState): SessionState {
       writeRemaining: 0,
       solutionVisible: false,
       solutionRemaining: 0,
+      solutionTitle: "",
+      solutionParts: [],
       message: "Alle Fragen abgeschlossen. Export ist bereit.",
     };
   }
@@ -54,38 +54,79 @@ function finishRound(prev: SessionState): SessionState {
     writeRemaining: 0,
     solutionVisible: false,
     solutionRemaining: 0,
+    solutionTitle: "",
+    solutionParts: [],
     message:
       "Frage beendet. Starte die naechste Frage, wenn du bereit bist.",
   };
 }
 
+function createSessionFromPayload(
+  payload: NonNullable<SessionState["payload"]>,
+  message: string,
+): SessionState {
+  return {
+    ...createInitialSessionState(),
+    payload,
+    settings: payload.settings,
+    readRemaining: payload.settings.readSeconds,
+    writeRemaining: payload.settings.writeSeconds,
+    answers: Array(payload.questions.length).fill(""),
+    solutionRequests: Array(payload.questions.length).fill(0),
+    message,
+  };
+}
+
 export default function App() {
-  const [session, setSession] = useState(createInitialSessionState);
+  const [session, setSession] = useState(() =>
+    mockConfig.enabled
+      ? createMockInitialSession(mockConfig.startActive)
+      : createInitialSessionState(),
+  );
   const [currentAnswer, setCurrentAnswer] = useState("");
-  const [solutionParts, setSolutionParts] = useState<string[]>([]);
-  const [solutionTitle, setSolutionTitle] = useState("Kurzsichtbare Loesung");
-  const solutionActiveRef = useRef(false);
+
+  const step = getWizardStep(session);
 
   const loadPayload = useCallback((raw: string) => {
     const payload = normalizePayload(raw);
 
-    setSession({
-      ...createInitialSessionState(),
-      payload,
-      settings: payload.settings,
-      readRemaining: payload.settings.readSeconds,
-      writeRemaining: payload.settings.writeSeconds,
-      answers: Array(payload.questions.length).fill(""),
-      solutionRequests: Array(payload.questions.length).fill(0),
-      message: "Bereit. Jede Frage bekommt ihren eigenen Timer.",
-    });
+    setSession(
+      createSessionFromPayload(
+        payload,
+        "Payload geladen. Pruefe die Uebersicht und starte den Test.",
+      ),
+    );
     setCurrentAnswer("");
-    setSolutionParts([]);
-    solutionActiveRef.current = false;
   }, []);
 
   const handlePayloadError = useCallback((message: string) => {
     setSession((prev) => ({ ...prev, message }));
+  }, []);
+
+  const resetToSetup = useCallback(() => {
+    setSession(
+      mockConfig.enabled
+        ? createMockInitialSession(false)
+        : createInitialSessionState(),
+    );
+    setCurrentAnswer("");
+  }, []);
+
+  const retryTest = useCallback(() => {
+    if (mockConfig.enabled) {
+      setSession(createMockInitialSession(false));
+      setCurrentAnswer("");
+      return;
+    }
+
+    setSession((prev) => {
+      if (!prev.payload) return prev;
+      return createSessionFromPayload(
+        prev.payload,
+        "Bereit fuer einen neuen Durchlauf.",
+      );
+    });
+    setCurrentAnswer("");
   }, []);
 
   useEffect(() => {
@@ -99,8 +140,6 @@ export default function App() {
           prev.writeRemaining > 0 ? prev.writeRemaining - 1 : 0;
 
         if (nextWrite <= 0 && prev.writeRemaining > 0) {
-          solutionActiveRef.current = false;
-          setSolutionParts([]);
           return finishRound({ ...prev, readRemaining: nextRead, writeRemaining: 0 });
         }
 
@@ -128,12 +167,12 @@ export default function App() {
       setSession((prev) => {
         const next = prev.solutionRemaining - 1;
         if (next <= 0) {
-          solutionActiveRef.current = false;
-          setSolutionParts([]);
           return {
             ...prev,
             solutionRemaining: 0,
             solutionVisible: false,
+            solutionTitle: "",
+            solutionParts: [],
           };
         }
         return { ...prev, solutionRemaining: next };
@@ -161,24 +200,60 @@ export default function App() {
     });
   };
 
-  const nextQuestion = () => {
+  const handleNextOrFinish = () => {
     setSession((prev) => {
-      if (!prev.payload || !prev.roundEnded || prev.finished) return prev;
+      if (!prev.payload || !prev.started || prev.finished) return prev;
 
-      const nextIndex = prev.currentIndex + 1;
-      setCurrentAnswer(prev.answers[nextIndex] || "");
-      setSolutionParts([]);
-      solutionActiveRef.current = false;
+      const total = prev.payload.questions.length;
+      const isLast = prev.currentIndex >= total - 1;
 
+      let state = prev;
+      if (!state.roundEnded) {
+        state = finishRound({
+          ...state,
+          readRemaining: 0,
+          writeRemaining: 0,
+        });
+      }
+
+      if (state.finished || isLast) return state;
+
+      const nextIndex = state.currentIndex + 1;
+      setCurrentAnswer(state.answers[nextIndex] || "");
       return {
-        ...prev,
+        ...state,
         currentIndex: nextIndex,
         roundEnded: false,
-        readRemaining: prev.settings.readSeconds,
-        writeRemaining: prev.settings.writeSeconds,
+        readRemaining: state.settings.readSeconds,
+        writeRemaining: state.settings.writeSeconds,
         solutionVisible: false,
         solutionRemaining: 0,
+        solutionTitle: "",
+        solutionParts: [],
         message: `Frage ${nextIndex + 1} gestartet.`,
+      };
+    });
+  };
+
+  const endTest = () => {
+    setSession((prev) => {
+      if (!prev.payload || !prev.started || prev.finished) return prev;
+
+      let state = prev;
+      if (!state.roundEnded) {
+        state = finishRound({
+          ...state,
+          readRemaining: 0,
+          writeRemaining: 0,
+        });
+      }
+
+      if (state.finished) return state;
+
+      return {
+        ...state,
+        finished: true,
+        message: "Test beendet. Export ist bereit.",
       };
     });
   };
@@ -188,8 +263,7 @@ export default function App() {
       const { payload, started, finished, roundEnded, settings, currentIndex } =
         prev;
       if (!payload || !started || finished || roundEnded) return prev;
-      if (!settings.allowSolution) return prev;
-      if (solutionActiveRef.current) return prev;
+      if (!settings.allowSolution || prev.solutionVisible) return prev;
 
       const used = prev.solutionRequests[currentIndex] || 0;
       if (used >= settings.maxSolutionRequestsPerQuestion) return prev;
@@ -203,15 +277,13 @@ export default function App() {
       const nextRequests = [...prev.solutionRequests];
       nextRequests[currentIndex] = used + 1;
 
-      solutionActiveRef.current = true;
-      setSolutionTitle(`${question.title} · Loesung`);
-      setSolutionParts(parts);
-
       return {
         ...prev,
         solutionRequests: nextRequests,
         solutionRemaining: settings.solutionSeconds,
         solutionVisible: true,
+        solutionTitle: `${question.title} · Loesung`,
+        solutionParts: parts,
       };
     });
   };
@@ -230,7 +302,7 @@ export default function App() {
     await copyText(text);
     setSession((prev) => ({
       ...prev,
-      message: "Zwischenstand kopiert.",
+      message: "Antworten kopiert.",
     }));
   };
 
@@ -243,108 +315,94 @@ export default function App() {
     }));
   };
 
-  const solutionReveals = getSolutionRevealsRemaining(session);
-  const questionVisible = isQuestionVisible(session);
-  const currentQuestion =
-    session.payload?.questions[session.currentIndex] ?? null;
+  const handleCopySchema = async () => {
+    await copyText(PAYLOAD_GENERATION_PROMPT);
+    setSession((prev) => ({
+      ...prev,
+      message: "Schema fuer ChatGPT kopiert.",
+    }));
+  };
 
-  const answerDisabled =
-    !session.started ||
-    session.finished ||
-    session.roundEnded ||
-    !session.payload;
+  if (step === "setup") {
+    return (
+      <SetupStep
+        message={session.message}
+        onLoad={loadPayload}
+        onError={handlePayloadError}
+        onCopySchema={handleCopySchema}
+      />
+    );
+  }
 
-  const startDisabled = !session.payload || session.started || session.finished;
-  const nextDisabled =
-    !session.payload || !session.roundEnded || session.finished;
-  const solutionDisabled =
-    !session.payload ||
-    !session.started ||
-    session.finished ||
-    session.roundEnded ||
-    !session.settings.allowSolution ||
-    (solutionReveals ?? 0) <= 0 ||
-    session.solutionVisible;
+  if (step === "ready" && session.payload) {
+    return (
+      <ReadyStep
+        mockMode={mockConfig.enabled}
+        payload={session.payload}
+        onStart={startTest}
+        onReset={resetToSetup}
+      />
+    );
+  }
 
-  return (
-    <div className="min-h-dvh bg-neutral-950 text-neutral-100 antialiased">
-      <div className="mx-auto flex min-h-dvh max-w-6xl flex-col px-4 py-5 sm:px-6 lg:px-8">
-        <header className="mb-5 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm text-neutral-400">
-              {session.payload?.topic ?? "Benchmark"}
-            </p>
-            <h1 className="text-2xl font-semibold tracking-tight">
-              {session.payload?.title ?? "Recall Test"}
-            </h1>
-          </div>
+  if (step === "done" && session.payload) {
+    return (
+      <DoneStep
+        payload={session.payload}
+        onCopy={handleCopy}
+        onDownload={handleDownload}
+        onRetry={retryTest}
+        onReset={resetToSetup}
+      />
+    );
+  }
 
-          <div className="flex items-center gap-2 rounded-full border border-neutral-800 bg-neutral-900 px-3 py-2 text-sm text-neutral-300">
-            <LockKeyhole className="h-4 w-4" />
-            <span>{session.payload?.mode ?? "Payload laden"}</span>
-          </div>
-        </header>
+  if (step === "active" && session.payload) {
+    const currentQuestion =
+      session.payload.questions[session.currentIndex];
 
-        <main className="grid flex-1 gap-4 lg:grid-cols-[390px_1fr]">
-          <SessionSidebar
-            stateBadge={getSessionBadge(session)}
-            payloadStatus={getPayloadStatus(session)}
-            progressLabel={getProgressLabel(session)}
-            readRemaining={session.readRemaining}
-            writeRemaining={session.writeRemaining}
-            settings={session.settings}
-            solutionRevealsRemaining={solutionReveals}
-            message={session.message}
-            startDisabled={startDisabled}
-            nextDisabled={nextDisabled}
-            solutionDisabled={solutionDisabled}
-            payloadLoadingDisabled={session.started && !session.finished}
-            onLoadPayload={loadPayload}
-            onPayloadError={handlePayloadError}
-            onStart={startTest}
-            onNext={nextQuestion}
-            onSolution={requestSolution}
-            onCopy={handleCopy}
-            onDownload={handleDownload}
-          />
+    if (!currentQuestion) return null;
 
-          <section className="grid gap-4">
-            <QuestionPanel
-              payload={session.payload}
-              question={currentQuestion}
-              started={session.started}
-              finished={session.finished}
-              questionVisible={questionVisible}
-            />
+    const totalQuestions = session.payload.questions.length;
+    const hasMoreQuestions = session.currentIndex < totalQuestions - 1;
 
-            <SolutionPanel
-              title={solutionTitle}
-              parts={solutionParts}
-              remaining={session.solutionRemaining}
-              visible={session.solutionVisible}
-            />
+    return (
+      <ActiveStep
+        mockMode={mockConfig.enabled}
+        payload={session.payload}
+        settings={session.settings}
+        question={currentQuestion}
+        questionVisible={isQuestionVisible(session)}
+        currentAnswer={currentAnswer}
+        answerDisabled={session.roundEnded}
+        readRemaining={session.readRemaining}
+        writeRemaining={session.writeRemaining}
+        progressLabel={getProgressLabel(session)}
+        solutionReveals={getSolutionRevealsRemaining(session)}
+        solutionRevealsMax={session.settings.maxSolutionRequestsPerQuestion}
+        solutionTitle={session.solutionTitle}
+        solutionParts={session.solutionParts}
+        solutionRemaining={session.solutionRemaining}
+        solutionVisible={session.solutionVisible}
+        solutionAllowed={
+          session.settings.allowSolution && !session.roundEnded
+        }
+        solutionButtonDisabled={
+          session.solutionVisible ||
+          (getSolutionRevealsRemaining(session) ?? 0) <= 0
+        }
+        message={session.message}
+        nextLabel={
+          hasMoreQuestions ? "Naechste Frage" : "Frage abschliessen"
+        }
+        nextDisabled={mockConfig.enabled ? false : !session.roundEnded}
+        onAnswerChange={handleAnswerChange}
+        onNext={handleNextOrFinish}
+        onEndTest={endTest}
+        onSolution={requestSolution}
+      />
+    );
+  }
 
-            {session.finished && (
-              <article className="rounded-3xl border border-emerald-500/30 bg-emerald-500/10 p-5">
-                <div className="mb-2 flex items-center gap-2 text-emerald-100">
-                  <CheckCircle2 className="h-5 w-5" />
-                  <h2 className="font-medium">Test beendet</h2>
-                </div>
-                <p className="text-sm text-emerald-100/80">
-                  Alle Fragen sind abgeschlossen. Deine Antworten koennen jetzt
-                  kopiert oder heruntergeladen werden.
-                </p>
-              </article>
-            )}
-
-            <AnswerPanel
-              value={currentAnswer}
-              disabled={answerDisabled}
-              onChange={handleAnswerChange}
-            />
-          </section>
-        </main>
-      </div>
-    </div>
-  );
+  return null;
 }

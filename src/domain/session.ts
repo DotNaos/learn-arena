@@ -22,6 +22,8 @@ export type SessionState = {
   solutionRequests: number[];
   message: string;
   solutionVisible: boolean;
+  solutionTitle: string;
+  solutionParts: string[];
 };
 
 export function createInitialSessionState(): SessionState {
@@ -46,6 +48,8 @@ export function createInitialSessionState(): SessionState {
     solutionRequests: [],
     message: "",
     solutionVisible: false,
+    solutionTitle: "",
+    solutionParts: [],
   };
 }
 
@@ -56,6 +60,20 @@ export function getSessionBadge(state: SessionState): SessionBadge {
   if (state.roundEnded) return "frage beendet";
   if (state.readRemaining > 0) return "frage sichtbar";
   return "abrufphase";
+}
+
+export function getRevealWarningClass(remaining: number): string {
+  if (remaining <= 0) return "text-neutral-600";
+  if (remaining === 1) return "text-red-400";
+  if (remaining === 2) return "text-amber-400";
+  return "text-emerald-400";
+}
+
+export function getRevealBarClass(remaining: number): string {
+  if (remaining <= 0) return "bg-neutral-700";
+  if (remaining === 1) return "bg-red-400";
+  if (remaining === 2) return "bg-amber-400";
+  return "bg-emerald-400";
 }
 
 export function getSolutionRevealsRemaining(

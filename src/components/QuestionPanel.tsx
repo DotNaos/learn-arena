@@ -1,4 +1,5 @@
 import type { Payload, Question } from "../domain/payload";
+import { SolutionControl } from "./SolutionControl";
 
 type QuestionPanelProps = {
   payload: Payload | null;
@@ -6,6 +7,13 @@ type QuestionPanelProps = {
   started: boolean;
   finished: boolean;
   questionVisible: boolean;
+  solutionAllowed?: boolean;
+  solutionButtonDisabled?: boolean;
+  solutionVisible?: boolean;
+  solutionSeconds?: number;
+  solutionReveals?: number | null;
+  solutionRevealsMax?: number;
+  onSolutionRequest?: () => void;
 };
 
 export function QuestionPanel({
@@ -14,6 +22,13 @@ export function QuestionPanel({
   started,
   finished,
   questionVisible,
+  solutionAllowed = false,
+  solutionButtonDisabled = true,
+  solutionSeconds = 10,
+  solutionVisible = false,
+  solutionReveals = null,
+  solutionRevealsMax = 1,
+  onSolutionRequest,
 }: QuestionPanelProps) {
   const locked = !payload || !started || finished;
   const hidden =
@@ -24,47 +39,61 @@ export function QuestionPanel({
     : hidden
       ? "ausgeblendet"
       : started && question
-        ? "freigeschaltet"
+        ? "sichtbar"
         : "gesperrt";
 
+  const showSolutionControl = Boolean(onSolutionRequest) && solutionAllowed;
+  const revealCount = solutionReveals ?? 0;
+
   return (
-    <article className="rounded-3xl border border-neutral-800 bg-neutral-900/70 p-5">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h2 className="font-medium">
+    <div className="shrink-0 pb-4 sm:pb-5">
+      <div className="mb-2 flex items-start gap-2 sm:gap-3">
+        <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-200">
           {question?.title ?? "Aufgabe"}
         </h2>
-        <span className="rounded-full bg-neutral-800 px-3 py-1 text-xs text-neutral-300">
+
+        {showSolutionControl && (
+          <SolutionControl
+            solutionSeconds={solutionSeconds}
+            solutionVisible={solutionVisible}
+            disabled={solutionButtonDisabled}
+            remaining={revealCount}
+            max={solutionRevealsMax}
+            onRequest={onSolutionRequest!}
+          />
+        )}
+
+        <span className="mt-0.5 shrink-0 rounded-md bg-neutral-800/80 px-2 py-0.5 text-[10px] uppercase tracking-wide text-neutral-400">
           {badge}
         </span>
       </div>
 
-      {locked && (
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4 text-sm text-neutral-400">
-          Lade eine Payload. Die Fragen werden einzeln nach dem Start
-          freigeschaltet.
-        </div>
-      )}
+      <div className="max-h-40 overflow-y-auto pr-1 sm:max-h-48">
+        {locked && (
+          <p className="text-sm text-neutral-500">
+            Lade eine Payload. Fragen werden nach dem Start freigeschaltet.
+          </p>
+        )}
 
-      {!locked && questionVisible && question && (
-        <div className="space-y-4">
-          {payload?.task && (
-            <p className="text-sm leading-6 text-neutral-400">
-              {payload.task}
-            </p>
-          )}
-          <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4">
-            <p className="text-lg font-medium leading-8 text-neutral-100">
+        {!locked && questionVisible && question && (
+          <div className="space-y-2">
+            {payload?.task && (
+              <p className="text-sm leading-relaxed text-neutral-400">
+                {payload.task}
+              </p>
+            )}
+            <p className="text-base font-medium leading-relaxed text-neutral-100 sm:text-lg">
               {question.prompt}
             </p>
           </div>
-        </div>
-      )}
+        )}
 
-      {hidden && (
-        <div className="rounded-2xl border border-neutral-800 bg-neutral-950/60 p-4 text-sm text-neutral-400">
-          Frage ist ausgeblendet. Schreibe jetzt aus dem Kopf weiter.
-        </div>
-      )}
-    </article>
+        {hidden && (
+          <p className="text-sm text-neutral-500">
+            Frage ausgeblendet. Schreibe aus dem Kopf weiter.
+          </p>
+        )}
+      </div>
+    </div>
   );
 }

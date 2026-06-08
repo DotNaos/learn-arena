@@ -6,6 +6,7 @@ type CircularTimerProps = {
   icon: LucideIcon;
   remaining: number;
   total: number;
+  compact?: boolean;
 };
 
 export function CircularTimer({
@@ -13,6 +14,7 @@ export function CircularTimer({
   icon: Icon,
   remaining,
   total,
+  compact = false,
 }: CircularTimerProps) {
   const ratio =
     Number.isFinite(total) && total > 0
@@ -22,14 +24,50 @@ export function CircularTimer({
   const ringColor =
     Number.isFinite(total) && total > 0 ? getRingColor(ratio) : "#737373";
 
-  return (
-    <section className="rounded-2xl bg-neutral-950/70 p-4">
-      <div className="mb-3 flex items-center justify-between text-sm text-neutral-400">
-        <span>{label}</span>
-        <Icon className="h-4 w-4" />
+  if (compact) {
+    return (
+      <div className="flex items-center gap-2">
+        <div className="relative h-9 w-9 shrink-0">
+          <svg className="h-9 w-9 -rotate-90" viewBox="0 0 100 100">
+            <circle
+              cx="50"
+              cy="50"
+              r="42"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="10"
+              className="text-neutral-800"
+            />
+            <circle
+              cx="50"
+              cy="50"
+              r="42"
+              fill="none"
+              stroke={ringColor}
+              strokeWidth="10"
+              strokeLinecap="round"
+              strokeDasharray={RING_CIRCUMFERENCE}
+              strokeDashoffset={dashOffset}
+            />
+          </svg>
+        </div>
+        <div className="min-w-0">
+          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-neutral-500">
+            <Icon className="h-3 w-3" />
+            <span className="truncate">{label}</span>
+          </div>
+          <div className="text-sm font-semibold tabular-nums">
+            {formatTime(remaining)}
+          </div>
+        </div>
       </div>
-      <div className="relative mx-auto h-28 w-28">
-        <svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100">
+    );
+  }
+
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <div className="relative h-20 w-20">
+        <svg className="h-20 w-20 -rotate-90" viewBox="0 0 100 100">
           <circle
             cx="50"
             cy="50"
@@ -51,10 +89,14 @@ export function CircularTimer({
             strokeDashoffset={dashOffset}
           />
         </svg>
-        <div className="absolute inset-0 grid place-items-center text-xl font-semibold tabular-nums">
+        <div className="absolute inset-0 grid place-items-center text-base font-semibold tabular-nums">
           {formatTime(remaining)}
         </div>
       </div>
-    </section>
+      <div className="flex items-center gap-1 text-xs text-neutral-400">
+        <Icon className="h-3.5 w-3.5" />
+        <span>{label}</span>
+      </div>
+    </div>
   );
 }
