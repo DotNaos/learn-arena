@@ -5,8 +5,10 @@ import { ReadyStep } from "./components/ReadyStep";
 import { SetupStep } from "./components/SetupStep";
 import {
   buildExportFromSession,
+  buildPayloadFilename,
   copyText,
   downloadText,
+  serializePayload,
 } from "./domain/export";
 import { normalizePayload } from "./domain/payload";
 import { PAYLOAD_GENERATION_PROMPT } from "./domain/payloadSchema";
@@ -21,14 +23,9 @@ import {
   getMockConfig,
 } from "./domain/mock";
 import { getWizardStep } from "./domain/wizard";
+import { KeyboardShortcutsHelp } from "./components/KeyboardShortcutsHelp";
 
 const mockConfig = getMockConfig();
-
-function getProgressLabel(state: SessionState): string {
-  const total = state.payload?.questions.length ?? 0;
-  if (!total) return "-- / --";
-  return `${Math.min(state.currentIndex + 1, total)} / ${total}`;
-}
 
 function finishRound(prev: SessionState): SessionState {
   const isLast =
@@ -56,8 +53,7 @@ function finishRound(prev: SessionState): SessionState {
     solutionRemaining: 0,
     solutionTitle: "",
     solutionParts: [],
-    message:
-      "Frage beendet. Starte die naechste Frage, wenn du bereit bist.",
+    message: "",
   };
 }
 
@@ -93,7 +89,7 @@ export default function App() {
     setSession(
       createSessionFromPayload(
         payload,
-        "Payload geladen. Pruefe die Uebersicht und starte den Test.",
+        "Fragensatz geladen. Pruefe die Uebersicht und starte den Test.",
       ),
     );
     setCurrentAnswer("");
@@ -306,36 +302,37 @@ export default function App() {
     }));
   };
 
-  const handleDownload = () => {
+  const handleDownloadAnswers = () => {
     const text = buildExportFromSession(session, currentAnswer);
     downloadText(text, "recall-benchmark-answer.txt");
-    setSession((prev) => ({
-      ...prev,
-      message: "Textdatei heruntergeladen.",
-    }));
   };
 
-  const handleCopySchema = async () => {
-    await copyText(PAYLOAD_GENERATION_PROMPT);
-    setSession((prev) => ({
-      ...prev,
-      message: "Schema fuer ChatGPT kopiert.",
-    }));
+  const handleDownloadPayload = () => {
+    if (!session.payload) return;
+
+    downloadText(
+      serializePayload(session.payload),
+      buildPayloadFilename(session.payload),
+    );
   };
+
+  const handleCopyPrompt = async () => {
+    await copyText(PAYLOAD_GENERATION_PROMPT);
+  };
+
+  let content = null;
 
   if (step === "setup") {
-    return (
+    content = (
       <SetupStep
         message={session.message}
         onLoad={loadPayload}
         onError={handlePayloadError}
-        onCopySchema={handleCopySchema}
+        onCopyPrompt={handleCopyPrompt}
       />
     );
-  }
-
-  if (step === "ready" && session.payload) {
-    return (
+  } else if (step === "ready" && session.payload) {
+    content = (
       <ReadyStep
         mockMode={mockConfig.enabled}
         payload={session.payload}
@@ -343,66 +340,70 @@ export default function App() {
         onReset={resetToSetup}
       />
     );
-  }
-
-  if (step === "done" && session.payload) {
-    return (
+  } else if (step === "done" && session.payload) {
+    content = (
       <DoneStep
         payload={session.payload}
         onCopy={handleCopy}
-        onDownload={handleDownload}
+        onDownloadAnswers={handleDownloadAnswers}
+        onDownloadPayload={handleDownloadPayload}
         onRetry={retryTest}
         onReset={resetToSetup}
       />
     );
-  }
-
-  if (step === "active" && session.payload) {
+  } else if (step === "active" && session.payload) {
     const currentQuestion =
       session.payload.questions[session.currentIndex];
 
-    if (!currentQuestion) return null;
+    if (currentQuestion) {
+      const hasMoreQuestions =
+        session.currentIndex < session.payload.questions.length - 1;
 
-    const totalQuestions = session.payload.questions.length;
-    const hasMoreQuestions = session.currentIndex < totalQuestions - 1;
-
-    return (
-      <ActiveStep
-        mockMode={mockConfig.enabled}
-        payload={session.payload}
-        settings={session.settings}
-        question={currentQuestion}
-        questionVisible={isQuestionVisible(session)}
-        currentAnswer={currentAnswer}
-        answerDisabled={session.roundEnded}
-        readRemaining={session.readRemaining}
-        writeRemaining={session.writeRemaining}
-        progressLabel={getProgressLabel(session)}
-        solutionReveals={getSolutionRevealsRemaining(session)}
-        solutionRevealsMax={session.settings.maxSolutionRequestsPerQuestion}
-        solutionTitle={session.solutionTitle}
-        solutionParts={session.solutionParts}
-        solutionRemaining={session.solutionRemaining}
-        solutionVisible={session.solutionVisible}
-        solutionAllowed={
-          session.settings.allowSolution && !session.roundEnded
-        }
-        solutionButtonDisabled={
-          session.solutionVisible ||
-          (getSolutionRevealsRemaining(session) ?? 0) <= 0
-        }
-        message={session.message}
-        nextLabel={
-          hasMoreQuestions ? "Naechste Frage" : "Frage abschliessen"
-        }
-        nextDisabled={mockConfig.enabled ? false : !session.roundEnded}
-        onAnswerChange={handleAnswerChange}
-        onNext={handleNextOrFinish}
-        onEndTest={endTest}
-        onSolution={requestSolution}
-      />
-    );
+      content = (
+        <ActiveStep
+          mockMode={mockConfig.enabled}
+          payload={session.payload}
+          settings={session.settings}
+          question={currentQuestion}
+          questionVisible={isQuestionVisible(session)}
+          roundEnded={session.roundEnded}
+          currentAnswer={currentAnswer}
+          answerDisabled={session.roundEnded}
+          readRemaining={session.readRemaining}
+          writeRemaining={session.writeRemaining}
+          questionNumber={session.currentIndex + 1}
+          totalQuestions={session.payload.questions.length}
+          solutionReveals={getSolutionRevealsRemaining(session)}
+          solutionRevealsMax={session.settings.maxSolutionRequestsPerQuestion}
+          solutionTitle={session.solutionTitle}
+          solutionParts={session.solutionParts}
+          solutionRemaining={session.solutionRemaining}
+          solutionVisible={session.solutionVisible}
+          solutionAllowed={session.settings.allowSolution}
+          solutionButtonDisabled={
+            session.roundEnded ||
+            session.solutionVisible ||
+            (getSolutionRevealsRemaining(session) ?? 0) <= 0
+          }
+          nextLabel={
+            hasMoreQuestions ? "Naechste Frage" : "Frage abschliessen"
+          }
+          nextDisabled={mockConfig.enabled ? false : !session.roundEnded}
+          onAnswerChange={handleAnswerChange}
+          onNext={handleNextOrFinish}
+          onEndTest={endTest}
+          onSolution={requestSolution}
+        />
+      );
+    }
   }
 
-  return null;
+  if (!content) return null;
+
+  return (
+    <>
+      {content}
+      <KeyboardShortcutsHelp step={step} />
+    </>
+  );
 }

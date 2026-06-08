@@ -1,5 +1,6 @@
+import { motion, useReducedMotion } from "motion/react";
 import type { Payload, Question } from "../domain/payload";
-import { SolutionControl } from "./SolutionControl";
+import { getMotionTransition } from "../ui/motionPresets";
 
 type QuestionPanelProps = {
   payload: Payload | null;
@@ -7,13 +8,6 @@ type QuestionPanelProps = {
   started: boolean;
   finished: boolean;
   questionVisible: boolean;
-  solutionAllowed?: boolean;
-  solutionButtonDisabled?: boolean;
-  solutionVisible?: boolean;
-  solutionSeconds?: number;
-  solutionReveals?: number | null;
-  solutionRevealsMax?: number;
-  onSolutionRequest?: () => void;
 };
 
 export function QuestionPanel({
@@ -22,78 +16,52 @@ export function QuestionPanel({
   started,
   finished,
   questionVisible,
-  solutionAllowed = false,
-  solutionButtonDisabled = true,
-  solutionSeconds = 10,
-  solutionVisible = false,
-  solutionReveals = null,
-  solutionRevealsMax = 1,
-  onSolutionRequest,
 }: QuestionPanelProps) {
+  const reduceMotion = useReducedMotion();
   const locked = !payload || !started || finished;
   const hidden =
     started && !finished && !questionVisible && question !== null;
+  const transition = getMotionTransition(reduceMotion, 0.55);
 
-  const badge = finished
-    ? "abgeschlossen"
-    : hidden
-      ? "ausgeblendet"
-      : started && question
-        ? "sichtbar"
-        : "gesperrt";
+  if (locked) {
+    return (
+      <p className="text-center text-sm text-neutral-500">
+        Lade einen Fragensatz. Fragen werden nach dem Start freigeschaltet.
+      </p>
+    );
+  }
 
-  const showSolutionControl = Boolean(onSolutionRequest) && solutionAllowed;
-  const revealCount = solutionReveals ?? 0;
+  if (!question) return null;
 
   return (
-    <div className="shrink-0 pb-4 sm:pb-5">
-      <div className="mb-2 flex items-start gap-2 sm:gap-3">
-        <h2 className="min-w-0 flex-1 truncate text-sm font-medium text-neutral-200">
-          {question?.title ?? "Aufgabe"}
+    <motion.div layout className="w-full text-center">
+      <motion.div
+        layout
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={
+          reduceMotion
+            ? { opacity: hidden ? 0.3 : 1, y: 0 }
+            : {
+                opacity: hidden ? 0.3 : 1,
+                y: 0,
+                filter: hidden
+                  ? "blur(12px) brightness(0.5)"
+                  : "blur(0px) brightness(1)",
+              }
+        }
+        transition={transition}
+        aria-hidden={hidden}
+        className={`space-y-3 px-2 ${hidden ? "pointer-events-none select-none" : ""}`}
+      >
+        {payload?.task && (
+          <p className="text-sm leading-relaxed text-neutral-400">
+            {payload.task}
+          </p>
+        )}
+        <h2 className="text-balance text-2xl font-semibold leading-snug tracking-tight text-neutral-100 sm:text-3xl">
+          {question.prompt}
         </h2>
-
-        {showSolutionControl && (
-          <SolutionControl
-            solutionSeconds={solutionSeconds}
-            solutionVisible={solutionVisible}
-            disabled={solutionButtonDisabled}
-            remaining={revealCount}
-            max={solutionRevealsMax}
-            onRequest={onSolutionRequest!}
-          />
-        )}
-
-        <span className="mt-0.5 shrink-0 rounded-md bg-neutral-800/80 px-2 py-0.5 text-[10px] uppercase tracking-wide text-neutral-400">
-          {badge}
-        </span>
-      </div>
-
-      <div className="max-h-40 overflow-y-auto pr-1 sm:max-h-48">
-        {locked && (
-          <p className="text-sm text-neutral-500">
-            Lade eine Payload. Fragen werden nach dem Start freigeschaltet.
-          </p>
-        )}
-
-        {!locked && questionVisible && question && (
-          <div className="space-y-2">
-            {payload?.task && (
-              <p className="text-sm leading-relaxed text-neutral-400">
-                {payload.task}
-              </p>
-            )}
-            <p className="text-base font-medium leading-relaxed text-neutral-100 sm:text-lg">
-              {question.prompt}
-            </p>
-          </div>
-        )}
-
-        {hidden && (
-          <p className="text-sm text-neutral-500">
-            Frage ausgeblendet. Schreibe aus dem Kopf weiter.
-          </p>
-        )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -1,12 +1,15 @@
-import { Eye, ListChecks, Timer } from "lucide-react";
+import { LayoutGroup, motion } from "motion/react";
+import { Timer } from "lucide-react";
+import { layoutTransition } from "../ui/motionPresets";
 import type { Payload, Question } from "../domain/payload";
 import type { Settings } from "../domain/payload";
+import { getTestTimeState } from "../domain/session";
 import { AnswerPanel } from "./AnswerPanel";
 import { CircularTimer } from "./CircularTimer";
+import { EndTestButton } from "./EndTestButton";
 import { QuestionPanel } from "./QuestionPanel";
 import { SolutionPanel } from "./SolutionPanel";
 import { MockModeBadge } from "./MockModeBadge";
-import { WizardProgress } from "./WizardProgress";
 
 type ActiveStepProps = {
   mockMode?: boolean;
@@ -14,11 +17,13 @@ type ActiveStepProps = {
   settings: Settings;
   question: Question;
   questionVisible: boolean;
+  roundEnded: boolean;
   currentAnswer: string;
   answerDisabled: boolean;
   readRemaining: number;
   writeRemaining: number;
-  progressLabel: string;
+  questionNumber: number;
+  totalQuestions: number;
   solutionReveals: number | null;
   solutionRevealsMax: number;
   solutionTitle: string;
@@ -27,7 +32,6 @@ type ActiveStepProps = {
   solutionVisible: boolean;
   solutionAllowed: boolean;
   solutionButtonDisabled: boolean;
-  message: string;
   nextDisabled: boolean;
   nextLabel: string;
   onAnswerChange: (value: string) => void;
@@ -42,11 +46,13 @@ export function ActiveStep({
   settings,
   question,
   questionVisible,
+  roundEnded,
   currentAnswer,
   answerDisabled,
   readRemaining,
   writeRemaining,
-  progressLabel,
+  questionNumber,
+  totalQuestions,
   solutionReveals,
   solutionRevealsMax,
   solutionTitle,
@@ -55,7 +61,6 @@ export function ActiveStep({
   solutionVisible,
   solutionAllowed,
   solutionButtonDisabled,
-  message,
   nextDisabled,
   nextLabel,
   onAnswerChange,
@@ -63,93 +68,103 @@ export function ActiveStep({
   onEndTest,
   onSolution,
 }: ActiveStepProps) {
+  const testTime = getTestTimeState({
+    questionNumber,
+    totalQuestions,
+    roundEnded,
+    readRemaining,
+    writeRemaining,
+    readSeconds: settings.readSeconds,
+    writeSeconds: settings.writeSeconds,
+  });
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-neutral-950 text-neutral-100">
-      <header className="shrink-0 border-b border-neutral-800/80 px-3 py-2 sm:px-5">
-        <div className="mb-2 hidden sm:block">
-          <WizardProgress current="active" />
-        </div>
+      <header className="shrink-0 border-b border-neutral-800/80 px-3 py-3 sm:px-5">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="min-w-0 shrink">
-            <p className="hidden truncate text-[10px] text-neutral-500 sm:block">
-              {payload.topic}
-            </p>
-            <div className="flex min-w-0 max-w-full items-center gap-1.5 sm:gap-2">
-              {mockMode && <MockModeBadge />}
-              <h1 className="truncate text-base font-semibold tracking-tight sm:text-lg">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+            {mockMode && <MockModeBadge />}
+            <div className="min-w-0">
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+                Test
+              </p>
+              <h1 className="truncate text-base font-semibold tracking-tight text-neutral-100 sm:text-lg">
                 {payload.title}
               </h1>
             </div>
           </div>
-
-          <div className="ml-auto flex min-w-0 items-center gap-2 overflow-x-auto sm:gap-3">
-            <div className="flex items-center gap-1 text-xs text-neutral-400">
-              <ListChecks className="h-3.5 w-3.5" />
-              <span className="font-semibold tabular-nums text-neutral-200">
-                {progressLabel}
-              </span>
-            </div>
-
-            <CircularTimer
-              compact
-              label="Sichtbar"
-              icon={Eye}
-              remaining={readRemaining}
-              total={settings.readSeconds}
-            />
-
-            <CircularTimer
-              compact
-              label="Antwort"
-              icon={Timer}
-              remaining={writeRemaining}
-              total={settings.writeSeconds}
-            />
-
-          </div>
+          <CircularTimer
+            minimal
+            label="Gesamt"
+            icon={Timer}
+            remaining={testTime.remaining}
+            total={testTime.total}
+          />
         </div>
       </header>
 
-      {message && (
-        <p className="shrink-0 truncate border-b border-neutral-800/50 px-3 pt-2.5 pb-3 text-xs leading-relaxed text-neutral-500 sm:px-5">
-          {message}
-        </p>
-      )}
+      <main className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-3 py-6 sm:px-5 sm:py-8">
+        <LayoutGroup>
+          <motion.div
+            layout
+            transition={{ layout: layoutTransition }}
+            className="flex w-full max-w-2xl flex-col gap-6 sm:gap-8"
+          >
+            <motion.div
+              layout
+              transition={{ layout: layoutTransition }}
+              className="flex w-full flex-col gap-4 sm:gap-5"
+            >
+              <QuestionPanel
+                payload={payload}
+                question={question}
+                started
+                finished={false}
+                questionVisible={questionVisible}
+              />
 
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 pt-3 pb-2 sm:px-5 sm:pt-4 sm:pb-3">
-        <div className="flex min-h-0 flex-1 flex-col">
-          <QuestionPanel
-            payload={payload}
-            question={question}
-            started
-            finished={false}
-            questionVisible={questionVisible}
-            solutionVisible={solutionVisible}
-            solutionAllowed={solutionAllowed}
-            solutionButtonDisabled={solutionButtonDisabled}
-            solutionSeconds={settings.solutionSeconds}
-            solutionReveals={solutionReveals}
-            solutionRevealsMax={solutionRevealsMax}
-            onSolutionRequest={onSolution}
-          />
+              <SolutionPanel
+                title={solutionTitle}
+                parts={solutionParts}
+                remaining={solutionRemaining}
+                totalSeconds={settings.solutionSeconds}
+                visible={solutionVisible}
+              />
+            </motion.div>
 
-          <SolutionPanel
-            title={solutionTitle}
-            parts={solutionParts}
-            remaining={solutionRemaining}
-            visible={solutionVisible}
-          />
-
-          <AnswerPanel
-            value={currentAnswer}
-            disabled={answerDisabled}
-            onChange={onAnswerChange}
-            nextLabel={nextLabel}
-            nextDisabled={nextDisabled}
-            onNext={onNext}
-            onEndTest={onEndTest}
-          />
-        </div>
+            <motion.div
+              layout
+              transition={{ layout: layoutTransition }}
+              className="flex w-full flex-col gap-3"
+            >
+            <AnswerPanel
+              value={currentAnswer}
+              disabled={answerDisabled}
+              roundEnded={roundEnded}
+              readRemaining={readRemaining}
+              writeRemaining={writeRemaining}
+              readSeconds={settings.readSeconds}
+              writeSeconds={settings.writeSeconds}
+              questionNumber={questionNumber}
+              totalQuestions={totalQuestions}
+              onChange={onAnswerChange}
+              nextLabel={nextLabel}
+              nextDisabled={nextDisabled}
+              onNext={onNext}
+              solutionAllowed={solutionAllowed}
+              solutionButtonDisabled={solutionButtonDisabled}
+              solutionSeconds={settings.solutionSeconds}
+              solutionVisible={solutionVisible}
+              solutionReveals={solutionReveals}
+              solutionRevealsMax={solutionRevealsMax}
+              onSolutionRequest={onSolution}
+            />
+            <div className="flex justify-end">
+              <EndTestButton onConfirm={onEndTest} />
+            </div>
+            </motion.div>
+          </motion.div>
+        </LayoutGroup>
       </main>
     </div>
   );

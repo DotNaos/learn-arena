@@ -1,6 +1,7 @@
 import { FileUp, Play } from "lucide-react";
 import type { Payload } from "../domain/payload";
 import { MockModeBadge } from "./MockModeBadge";
+import { ShortcutActionButton } from "./ShortcutActionButton";
 
 type ReadyStepProps = {
   mockMode?: boolean;
@@ -35,14 +36,13 @@ export function ReadyStep({
             </p>
           </div>
 
-          <button
-            type="button"
-            onClick={onStart}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-100 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-neutral-300"
-          >
-            <Play className="h-4 w-4" />
-            Test starten
-          </button>
+          <ShortcutActionButton
+            label="Test starten"
+            onAction={onStart}
+            icon={<Play className="h-4 w-4" />}
+            chipVariant="light"
+            className="inline-flex min-w-56 items-center gap-2 rounded-xl bg-neutral-100 px-5 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-neutral-300"
+          />
 
           <button
             type="button"
@@ -50,7 +50,7 @@ export function ReadyStep({
             className="mt-3 inline-flex w-full items-center justify-center gap-1.5 text-sm text-neutral-500 hover:text-neutral-300"
           >
             <FileUp className="h-3.5 w-3.5 shrink-0" />
-            Anderen Payload laden
+            Anderen Fragensatz laden
           </button>
         </div>
       </main>

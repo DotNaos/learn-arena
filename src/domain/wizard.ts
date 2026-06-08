@@ -10,7 +10,7 @@ export function getWizardStep(state: SessionState): WizardStep {
 }
 
 export const WIZARD_STEPS: { id: WizardStep; label: string }[] = [
-  { id: "setup", label: "Payload" },
+  { id: "setup", label: "Import" },
   { id: "ready", label: "Bereit" },
   { id: "active", label: "Test" },
   { id: "done", label: "Fertig" },
