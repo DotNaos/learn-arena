@@ -4,7 +4,7 @@
     "target": "es2023",
     "lib": ["ES2023", "DOM"],
     "module": "esnext",
-    "types": ["vite/client"],
+    "types": ["vite/client", "node"],
     "skipLibCheck": true,
 
     /* Bundler mode */
@@ -24,7 +24,13 @@
 
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@aryazos/markdown-editor": [
+        "./node_modules/@aryazos/markdown-editor/packages/react-components/markdown-editor/src/index.ts"
+      ],
+      "@aryazos/markdown-editor/*": [
+        "./node_modules/@aryazos/markdown-editor/packages/react-components/markdown-editor/src/*"
+      ]
     }
   },
   "include": ["src"]

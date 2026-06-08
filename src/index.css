@@ -7,6 +7,67 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
+.answer-composer-editor {
+  --answer-editor-line-height: 1.625rem;
+  --answer-editor-max-lines: 8;
+}
+
+.answer-composer-editor > .relative {
+  max-height: calc(
+    var(--answer-editor-line-height) * var(--answer-editor-max-lines)
+  );
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.answer-composer-editor .ProseMirror {
+  min-height: calc(var(--answer-editor-line-height) * 2);
+  color: rgb(245 245 245);
+  font-size: 0.875rem;
+  line-height: 1.625;
+}
+
+@media (min-width: 40rem) {
+  .answer-composer-editor {
+    --answer-editor-line-height: 1.625rem;
+  }
+
+  .answer-composer-editor .ProseMirror {
+    font-size: 1rem;
+  }
+}
+
+.answer-composer-editor .ProseMirror h1,
+.answer-composer-editor .ProseMirror h2,
+.answer-composer-editor .ProseMirror h3 {
+  color: rgb(245 245 245);
+}
+
+.answer-composer-editor .ProseMirror blockquote {
+  border-left-color: rgb(64 64 64);
+  color: rgb(163 163 163);
+}
+
+.answer-composer-editor .ProseMirror code {
+  background-color: rgb(38 38 38);
+  color: rgb(212 212 212);
+}
+
+.answer-composer-editor .ProseMirror pre {
+  background-color: rgb(23 23 23);
+}
+
+.answer-composer-editor .ProseMirror .is-empty::before {
+  color: rgb(115 115 115);
+}
+
+.answer-composer-editor[data-disabled="true"] {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .solution-reveal-frame {
   position: relative;
   isolation: isolate;

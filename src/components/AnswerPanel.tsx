@@ -1,6 +1,6 @@
-import { useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { countWords, getAnswerPlaceholder } from "../domain/session";
+import { AnswerEditor } from "./AnswerEditor";
 import { ShortcutActionButton } from "./ShortcutActionButton";
 import { QuestionProgressBlock } from "./QuestionProgress";
 import { SolutionControl } from "./SolutionControl";
@@ -58,17 +58,6 @@ export function AnswerPanel({
   const showToolbar = onNext || showSolutionControl;
   const showProgress = totalQuestions > 0 && questionNumber !== undefined;
   const wordCount = countWords(value);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  useEffect(() => {
-    if (disabled) return;
-
-    const frame = window.requestAnimationFrame(() => {
-      textareaRef.current?.focus();
-    });
-
-    return () => window.cancelAnimationFrame(frame);
-  }, [disabled, questionNumber]);
 
   return (
     <div className="w-full">
@@ -91,23 +80,12 @@ export function AnswerPanel({
         </div>
       )}
       <div className="w-full overflow-hidden rounded-3xl border border-neutral-800/90 bg-neutral-900/50 shadow-sm">
-        <textarea
-          ref={textareaRef}
+        <AnswerEditor
           value={value}
-          disabled={disabled}
-          onChange={(event) => onChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (
-              event.metaKey &&
-              (event.key === "Enter" ||
-                event.key === "." ||
-                event.key === "/")
-            ) {
-              event.preventDefault();
-            }
-          }}
-          className="block h-20 w-full resize-none bg-transparent px-4 pt-4 pb-1 text-sm leading-relaxed text-neutral-100 outline-none placeholder:text-neutral-500 disabled:cursor-not-allowed disabled:opacity-60 sm:h-24 sm:text-base"
           placeholder={placeholder}
+          disabled={disabled}
+          questionNumber={questionNumber}
+          onChange={onChange}
         />
 
         {showToolbar && (
