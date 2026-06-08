@@ -24,12 +24,6 @@ import { getWizardStep } from "./domain/wizard";
 
 const mockConfig = getMockConfig();
 
-function getProgressLabel(state: SessionState): string {
-  const total = state.payload?.questions.length ?? 0;
-  if (!total) return "-- / --";
-  return `${Math.min(state.currentIndex + 1, total)} / ${total}`;
-}
-
 function finishRound(prev: SessionState): SessionState {
   const isLast =
     prev.currentIndex >= (prev.payload?.questions.length ?? 1) - 1;
@@ -56,8 +50,7 @@ function finishRound(prev: SessionState): SessionState {
     solutionRemaining: 0,
     solutionTitle: "",
     solutionParts: [],
-    message:
-      "Frage beendet. Starte die naechste Frage, wenn du bereit bist.",
+    message: "",
   };
 }
 
@@ -373,25 +366,25 @@ export default function App() {
         settings={session.settings}
         question={currentQuestion}
         questionVisible={isQuestionVisible(session)}
+        roundEnded={session.roundEnded}
         currentAnswer={currentAnswer}
         answerDisabled={session.roundEnded}
         readRemaining={session.readRemaining}
         writeRemaining={session.writeRemaining}
-        progressLabel={getProgressLabel(session)}
+        questionNumber={session.currentIndex + 1}
+        totalQuestions={session.payload.questions.length}
         solutionReveals={getSolutionRevealsRemaining(session)}
         solutionRevealsMax={session.settings.maxSolutionRequestsPerQuestion}
         solutionTitle={session.solutionTitle}
         solutionParts={session.solutionParts}
         solutionRemaining={session.solutionRemaining}
         solutionVisible={session.solutionVisible}
-        solutionAllowed={
-          session.settings.allowSolution && !session.roundEnded
-        }
+        solutionAllowed={session.settings.allowSolution}
         solutionButtonDisabled={
+          session.roundEnded ||
           session.solutionVisible ||
           (getSolutionRevealsRemaining(session) ?? 0) <= 0
         }
-        message={session.message}
         nextLabel={
           hasMoreQuestions ? "Naechste Frage" : "Frage abschliessen"
         }

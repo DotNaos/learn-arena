@@ -4,7 +4,6 @@ import { createInitialSessionState, type SessionState } from "./session";
 export const MOCK_PAYLOAD_JSON = JSON.stringify({
   title: "Mock Recall Test",
   mode: "per-question",
-  task: "Dies ist ein Mock-Payload zum Durchklicken aller Wizard-Schritte.",
   questions: [
     {
       title: "Frage 1",

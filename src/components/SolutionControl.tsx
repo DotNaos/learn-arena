@@ -1,5 +1,5 @@
 import { Lightbulb } from "lucide-react";
-import { getRevealBarClass, getRevealWarningClass } from "../domain/session";
+import { getRevealBadgeClass } from "../domain/session";
 import {
   Tooltip,
   TooltipContent,
@@ -9,6 +9,7 @@ import {
 type SolutionControlProps = {
   solutionSeconds: number;
   solutionVisible: boolean;
+  roundEnded?: boolean;
   disabled: boolean;
   remaining: number;
   max: number;
@@ -18,16 +19,20 @@ type SolutionControlProps = {
 function getSolutionTooltip(
   solutionSeconds: number,
   solutionVisible: boolean,
+  roundEnded: boolean,
   remaining: number,
+  max: number,
 ): string {
   if (solutionVisible) return "Loesung wird angezeigt";
+  if (roundEnded) return "Antwortzeit abgelaufen";
   if (remaining <= 0) return "Keine Reveals mehr uebrig";
-  return `Loesung ${solutionSeconds}s anzeigen`;
+  return `Loesung ${solutionSeconds}s anzeigen (${remaining}/${max})`;
 }
 
 export function SolutionControl({
   solutionSeconds,
   solutionVisible,
+  roundEnded = false,
   disabled,
   remaining,
   max,
@@ -35,45 +40,40 @@ export function SolutionControl({
 }: SolutionControlProps) {
   if (max <= 0) return null;
 
-  const ratio = Math.max(0, Math.min(1, remaining / max));
-  const tooltip = getSolutionTooltip(solutionSeconds, solutionVisible, remaining);
-
-  const controlButton = (
-    <button
-      type="button"
-      disabled={disabled}
-      onClick={onRequest}
-      aria-label={tooltip}
-      className="inline-flex w-fit shrink-0 flex-col overflow-hidden rounded-lg bg-neutral-900/70 text-left transition-colors hover:bg-neutral-800/80 disabled:cursor-not-allowed disabled:opacity-70 disabled:hover:bg-neutral-900/70"
-    >
-      <span className="flex items-center gap-1.5 px-1.5 py-1">
-        <Lightbulb
-          className={`h-3.5 w-3.5 shrink-0 text-neutral-400 ${solutionVisible ? "text-indigo-400/80" : ""}`}
-        />
-        <span
-          className={`text-[10px] font-medium leading-none tabular-nums sm:text-xs ${getRevealWarningClass(remaining)}`}
-        >
-          {remaining}/{max}
-        </span>
-      </span>
-
-      <span className="block h-0.5 w-full bg-neutral-800/90" aria-hidden>
-        <span
-          className={`block h-full transition-[width] duration-300 ${getRevealBarClass(remaining)}`}
-          style={{ width: `${ratio * 100}%` }}
-        />
-      </span>
-    </button>
+  const tooltip = getSolutionTooltip(
+    solutionSeconds,
+    solutionVisible,
+    roundEnded,
+    remaining,
+    max,
   );
 
   return (
     <Tooltip>
       <TooltipTrigger
         render={
-          <span className="inline-flex w-fit shrink-0">{controlButton}</span>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={onRequest}
+            aria-label={tooltip}
+            className="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-neutral-500 transition-colors hover:bg-neutral-800/80 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+          >
+            <Lightbulb
+              className={`h-4 w-4 shrink-0 ${
+                solutionVisible ? "text-indigo-300/90" : "text-neutral-400"
+              }`}
+            />
+            <span className="text-xs font-medium text-neutral-400">Loesung</span>
+            <span
+              className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${getRevealBadgeClass(remaining)}`}
+            >
+              {remaining}
+            </span>
+          </button>
         }
       />
-      <TooltipContent side="bottom">{tooltip}</TooltipContent>
+      <TooltipContent side="top">{tooltip}</TooltipContent>
     </Tooltip>
   );
 }

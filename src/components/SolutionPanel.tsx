@@ -25,7 +25,7 @@ export function SolutionPanel({
 }: SolutionPanelProps) {
   return (
     <div
-      className={`${revealTransition} shrink-0 ${visible ? `grid-rows-[1fr] ${revealOpacityVisible} mt-2` : `grid-rows-[0fr] ${revealOpacityHidden} pointer-events-none`}`}
+      className={`${revealTransition} w-full shrink-0 ${visible ? `grid-rows-[1fr] ${revealOpacityVisible}` : `grid-rows-[0fr] ${revealOpacityHidden} pointer-events-none`}`}
       aria-hidden={!visible}
     >
       <div className="min-h-0 overflow-hidden">

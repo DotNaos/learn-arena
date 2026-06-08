@@ -76,6 +76,13 @@ export function getRevealBarClass(remaining: number): string {
   return "bg-emerald-400";
 }
 
+export function getRevealBadgeClass(remaining: number): string {
+  if (remaining <= 0) return "bg-neutral-800 text-neutral-500";
+  if (remaining === 1) return "bg-red-500/20 text-red-400";
+  if (remaining === 2) return "bg-amber-500/20 text-amber-400";
+  return "bg-emerald-500/20 text-emerald-400";
+}
+
 export function getSolutionRevealsRemaining(
   state: SessionState,
 ): number | null {
@@ -108,6 +115,21 @@ export const RING_CIRCUMFERENCE = 263.89;
 
 export function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
+export function getAnswerPlaceholder(state: {
+  roundEnded: boolean;
+  readRemaining: number;
+}): string {
+  if (state.roundEnded) {
+    return "Optional noch ergaenzen, dann weiter...";
+  }
+
+  if (state.readRemaining > 0) {
+    return "Lies die Frage — danach schreibst du aus dem Kopf...";
+  }
+
+  return "Schreibe deine Antwort aus dem Kopf...";
 }
 
 export function isQuestionVisible(state: SessionState): boolean {
