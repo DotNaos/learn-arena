@@ -42,7 +42,7 @@ export function AnswerPanel({
   onNext,
   solutionAllowed = false,
   solutionButtonDisabled = true,
-  solutionSeconds = 10,
+  solutionSeconds = 15,
   solutionVisible = false,
   solutionReveals = null,
   solutionRevealsMax = 1,

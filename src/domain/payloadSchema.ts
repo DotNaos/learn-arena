@@ -1,4 +1,14 @@
-export const PAYLOAD_GENERATION_PROMPT = `Du hilfst mir, einen Recall-Fragensatz fuer die Learn Arena App zu erstellen.
+export const LEARN_ARENA_APP_URL =
+  import.meta.env.VITE_LEARN_ARENA_URL ?? "https://learn-arena.vercel.app";
+
+export const SOLUTION_SECONDS_DEFAULT = 15;
+export const SOLUTION_SECONDS_MIN = 5;
+export const SOLUTION_SECONDS_MAX = 60;
+
+export function buildPayloadGenerationPrompt(
+  appUrl: string = LEARN_ARENA_APP_URL,
+): string {
+  return `Du hilfst mir, einen Recall-Fragensatz fuer die Learn Arena App zu erstellen.
 
 Deine ERSTE Nachricht — genau so, nicht laenger:
 "Was willst du ueben?"
@@ -8,13 +18,21 @@ Danach — Standard (faul):
 - Ich kann PDFs oder andere Dateien anhaengen, ohne sie zu erwaehnen. Lies angehaengte Unterlagen still mit und nutze sie als Hauptquelle.
 - Stelle KEINE Rueckfragen von dir aus. Entscheide selbst: Anzahl Fragen (typisch 3-5), Schwierigkeit, gemeinsame vs. einzelne Aufgabenstellung, Zeiten.
 - Warte NICHT auf Bestaetigung. Nach meiner Antwort (Text + evtl. Anhaenge) erstellst du sofort den Fragensatz.
-- Antworte dann NUR mit EINEM JSON-Codeblock (\`\`\`json ... \`\`\`). Kein Fliesstext davor oder danach.
+- Antworte mit EINEM JSON-Codeblock (\`\`\`json ... \`\`\`), danach direkt eine kurze Anleitung (siehe unten). Kein Fliesstext vor dem JSON.
 
 Optional — Tunen (nur auf explizite Nachfrage):
 - Nur wenn ich aktiv nach Anpassung frage (z.B. "will tunen", "noch anpassen", "mehr kontrolle", "wie viele fragen", "schwierigkeit aendern").
-- Dann stelle kurz, menschlich und ohne Technik-Jargon ein paar Fragen — z.B. wie viele Fragen, wie anspruchsvoll (locker / mittel / pruefungsnah), eine gemeinsame Situation oder jede Frage fuer sich, wie viel Zeit pro Antwort.
+- Dann stelle kurz, menschlich und ohne Technik-Jargon ein paar Fragen — z.B. wie viele Fragen, wie anspruchsvoll (locker / mittel / pruefungsnah), eine gemeinsame Situation oder jede Frage fuer sich, wie viel Zeit pro Antwort, wie lange die Loesung sichtbar bleiben soll (5-60 Sekunden).
 - Nenne keine JSON-Feldnamen, keine Schema-Begriffe, kein "mode" oder "settings".
-- Nach meinen Antworten (oder wenn ich sage "passt so" / "mach einfach") direkt den JSON-Codeblock ausgeben — wieder nur der Block, kein Fliesstext.
+- Nach meinen Antworten (oder wenn ich sage "passt so" / "mach einfach") JSON-Codeblock + kurze Anleitung ausgeben.
+
+Ausgabeformat nach dem Fragensatz:
+1. Zuerst der JSON-Codeblock (\`\`\`json ... \`\`\`).
+2. Direkt darunter, in 2-3 kurzen Saetzen:
+   - Den JSON-Codeblock komplett kopieren.
+   - Dann ${appUrl} oeffnen.
+   - Dort den kopierten JSON einfuegen und den Test starten.
+3. Nach dieser Anleitung nichts mehr schreiben.
 
 Das JSON muss diesem Schema entsprechen:
 {
@@ -32,7 +50,7 @@ Das JSON muss diesem Schema entsprechen:
   "settings": {
     "readSeconds": 45,
     "writeSeconds": 180,
-    "solutionSeconds": 10,
+    "solutionSeconds": ${SOLUTION_SECONDS_DEFAULT},
     "maxSolutionRequestsPerQuestion": 1,
     "allowSolution": true,
     "hideQuestionAfterRead": true
@@ -45,9 +63,11 @@ Regeln fuer das JSON:
 - "solution" ist immer string[]; jeder Eintrag ist ein Absatz. Keine \\n in Strings.
 - "writeSeconds" muss groesser als 0 sein.
 - "readSeconds" darf 0 oder groesser sein.
+- "solutionSeconds": Standard ${SOLUTION_SECONDS_DEFAULT}, erlaubt ${SOLUTION_SECONDS_MIN}-${SOLUTION_SECONDS_MAX} (wie lange die Loesung angezeigt wird).
 - Waehle "mode": "per-question" oder "shared-task" und optional "task" selbst — passend zum Thema.
 
 Beginne jetzt mit deiner ersten Nachricht: "Was willst du ueben?"`;
+}
 
 export function buildChatGptUrl(prompt: string): string {
   return `https://chatgpt.com/?hints=search&q=${encodeURIComponent(prompt)}`;

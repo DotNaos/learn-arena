@@ -11,7 +11,7 @@ import {
   serializePayload,
 } from "./domain/export";
 import { normalizePayload } from "./domain/payload";
-import { PAYLOAD_GENERATION_PROMPT } from "./domain/payloadSchema";
+import { buildPayloadGenerationPrompt } from "./domain/payloadSchema";
 import {
   createInitialSessionState,
   getSolutionRevealsRemaining,
@@ -317,7 +317,7 @@ export default function App() {
   };
 
   const handleCopyPrompt = async () => {
-    await copyText(PAYLOAD_GENERATION_PROMPT);
+    await copyText(buildPayloadGenerationPrompt());
   };
 
   let content = null;

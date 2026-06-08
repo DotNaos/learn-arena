@@ -16,7 +16,7 @@ import {
 import {
   buildChatGptUrl,
   buildClaudeUrl,
-  PAYLOAD_GENERATION_PROMPT,
+  buildPayloadGenerationPrompt,
 } from "../domain/payloadSchema";
 import {
   CHORD_META_COMMA,
@@ -62,8 +62,9 @@ export function SetupStep({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteRef = useRef<HTMLTextAreaElement>(null);
   const moreOptionsRef = useRef<HTMLDivElement>(null);
-  const chatGptUrl = buildChatGptUrl(PAYLOAD_GENERATION_PROMPT);
-  const claudeUrl = buildClaudeUrl(PAYLOAD_GENERATION_PROMPT);
+  const generationPrompt = useMemo(() => buildPayloadGenerationPrompt(), []);
+  const chatGptUrl = buildChatGptUrl(generationPrompt);
+  const claudeUrl = buildClaudeUrl(generationPrompt);
 
   const aiChatOptions = useMemo(
     () => [

@@ -24,7 +24,7 @@ export const MOCK_PAYLOAD_JSON = JSON.stringify({
   settings: {
     readSeconds: 45,
     writeSeconds: 180,
-    solutionSeconds: 10,
+    solutionSeconds: 15,
     maxSolutionRequestsPerQuestion: 2,
     allowSolution: true,
     hideQuestionAfterRead: true,

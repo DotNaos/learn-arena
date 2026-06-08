@@ -1,4 +1,4 @@
-import type { Payload, Settings } from "./payload";
+import { DEFAULT_SETTINGS, type Payload, type Settings } from "./payload";
 
 export type SessionBadge =
   | "leer"
@@ -29,14 +29,7 @@ export type SessionState = {
 export function createInitialSessionState(): SessionState {
   return {
     payload: null,
-    settings: {
-      readSeconds: 45,
-      writeSeconds: 180,
-      solutionSeconds: 10,
-      maxSolutionRequestsPerQuestion: 1,
-      allowSolution: true,
-      hideQuestionAfterRead: true,
-    },
+    settings: { ...DEFAULT_SETTINGS },
     started: false,
     finished: false,
     roundEnded: false,

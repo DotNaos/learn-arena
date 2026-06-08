@@ -1,7 +1,13 @@
+import {
+  SOLUTION_SECONDS_DEFAULT,
+  SOLUTION_SECONDS_MAX,
+  SOLUTION_SECONDS_MIN,
+} from "./payloadSchema";
+
 export const DEFAULT_SETTINGS = {
   readSeconds: 45,
   writeSeconds: 180,
-  solutionSeconds: 10,
+  solutionSeconds: SOLUTION_SECONDS_DEFAULT,
   maxSolutionRequestsPerQuestion: 1,
   allowSolution: true,
   hideQuestionAfterRead: true,
@@ -111,6 +117,16 @@ export function normalizePayload(raw: string): Payload {
 
   if (nextSettings.readSeconds < 0 || nextSettings.writeSeconds <= 0) {
     throw new Error("Timer-Werte sind ungueltig.");
+  }
+
+  if (
+    Number.isNaN(nextSettings.solutionSeconds) ||
+    nextSettings.solutionSeconds < SOLUTION_SECONDS_MIN ||
+    nextSettings.solutionSeconds > SOLUTION_SECONDS_MAX
+  ) {
+    throw new Error(
+      `'solutionSeconds' muss zwischen ${SOLUTION_SECONDS_MIN} und ${SOLUTION_SECONDS_MAX} liegen.`,
+    );
   }
 
   return {
