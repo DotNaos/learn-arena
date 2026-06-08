@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { countWords, getAnswerPlaceholder } from "../domain/session";
 import {
@@ -47,6 +47,16 @@ export function AnswerPanel({
   totalQuestions = 0,
 }: AnswerPanelProps) {
   const [metaHeld, setMetaHeld] = useState(false);
+  const enterReadyRef = useRef(true);
+  const onNextRef = useRef(onNext);
+  const nextDisabledRef = useRef(nextDisabled);
+
+  onNextRef.current = onNext;
+  nextDisabledRef.current = nextDisabled;
+
+  useEffect(() => {
+    enterReadyRef.current = true;
+  }, [questionNumber]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -55,30 +65,40 @@ export function AnswerPanel({
       if (
         event.key === "Enter" &&
         event.metaKey &&
-        onNext &&
-        !nextDisabled
+        onNextRef.current &&
+        !nextDisabledRef.current &&
+        enterReadyRef.current &&
+        !event.repeat
       ) {
         event.preventDefault();
-        onNext();
+        enterReadyRef.current = false;
+        onNextRef.current();
       }
     };
 
     const onKeyUp = (event: KeyboardEvent) => {
+      if (event.key === "Enter") {
+        enterReadyRef.current = true;
+      }
+
       if (event.key === "Meta" || !event.metaKey) setMetaHeld(false);
     };
 
-    const onBlur = () => setMetaHeld(false);
+    const onBlur = () => {
+      enterReadyRef.current = true;
+      setMetaHeld(false);
+    };
 
-    window.addEventListener("keydown", onKeyDown);
-    window.addEventListener("keyup", onKeyUp);
+    document.addEventListener("keydown", onKeyDown, true);
+    document.addEventListener("keyup", onKeyUp, true);
     window.addEventListener("blur", onBlur);
 
     return () => {
-      window.removeEventListener("keydown", onKeyDown);
-      window.removeEventListener("keyup", onKeyUp);
+      document.removeEventListener("keydown", onKeyDown, true);
+      document.removeEventListener("keyup", onKeyUp, true);
       window.removeEventListener("blur", onBlur);
     };
-  }, [onNext, nextDisabled]);
+  }, []);
 
   const hasAnswer = value.trim().length > 0;
   const placeholder = getAnswerPlaceholder({ roundEnded, readRemaining });
@@ -116,14 +136,8 @@ export function AnswerPanel({
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={(event) => {
-            if (
-              event.key === "Enter" &&
-              event.metaKey &&
-              onNext &&
-              !nextDisabled
-            ) {
+            if (event.key === "Enter" && event.metaKey) {
               event.preventDefault();
-              onNext();
             }
           }}
           className="block h-20 w-full resize-none bg-transparent px-4 pt-4 pb-1 text-sm leading-relaxed text-neutral-100 outline-none placeholder:text-neutral-500 disabled:cursor-not-allowed disabled:opacity-60 sm:h-24 sm:text-base"

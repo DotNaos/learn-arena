@@ -38,7 +38,7 @@ export function ReadyStep({
           <button
             type="button"
             onClick={onStart}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-neutral-100 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-neutral-300"
+            className="inline-flex min-w-56 items-center justify-center gap-2 rounded-xl bg-neutral-100 px-10 py-3.5 text-sm font-medium text-neutral-950 transition-colors hover:bg-neutral-300"
           >
             <Play className="h-4 w-4" />
             Test starten
