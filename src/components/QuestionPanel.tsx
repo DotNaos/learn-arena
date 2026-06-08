@@ -1,4 +1,6 @@
+import { motion, useReducedMotion } from "motion/react";
 import type { Payload, Question } from "../domain/payload";
+import { getMotionTransition } from "../ui/motionPresets";
 
 type QuestionPanelProps = {
   payload: Payload | null;
@@ -15,30 +17,41 @@ export function QuestionPanel({
   finished,
   questionVisible,
 }: QuestionPanelProps) {
+  const reduceMotion = useReducedMotion();
   const locked = !payload || !started || finished;
   const hidden =
     started && !finished && !questionVisible && question !== null;
-  const showQuestionBody = !locked && question !== null;
+  const transition = getMotionTransition(reduceMotion, 0.55);
 
   if (locked) {
     return (
       <p className="text-center text-sm text-neutral-500">
-        Lade eine Payload. Fragen werden nach dem Start freigeschaltet.
+        Lade einen Fragensatz. Fragen werden nach dem Start freigeschaltet.
       </p>
     );
   }
 
-  if (!showQuestionBody) return null;
+  if (!question) return null;
 
   return (
-    <div className="w-full text-center">
-      <div
+    <motion.div layout className="w-full text-center">
+      <motion.div
+        layout
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={
+          reduceMotion
+            ? { opacity: hidden ? 0.3 : 1, y: 0 }
+            : {
+                opacity: hidden ? 0.3 : 1,
+                y: 0,
+                filter: hidden
+                  ? "blur(12px) brightness(0.5)"
+                  : "blur(0px) brightness(1)",
+              }
+        }
+        transition={transition}
         aria-hidden={hidden}
-        className={`space-y-3 px-2 transition-[filter,opacity] duration-700 ease-out motion-reduce:transition-none ${
-          hidden
-            ? "pointer-events-none select-none blur-md opacity-30 brightness-50"
-            : "opacity-100 blur-0 brightness-100"
-        }`}
+        className={`space-y-3 px-2 ${hidden ? "pointer-events-none select-none" : ""}`}
       >
         {payload?.task && (
           <p className="text-sm leading-relaxed text-neutral-400">
@@ -48,7 +61,7 @@ export function QuestionPanel({
         <h2 className="text-balance text-2xl font-semibold leading-snug tracking-tight text-neutral-100 sm:text-3xl">
           {question.prompt}
         </h2>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

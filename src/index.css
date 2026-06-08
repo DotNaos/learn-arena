@@ -7,38 +7,54 @@ button:not(:disabled) {
   cursor: pointer;
 }
 
-@keyframes solution-border-breathe {
-  0%,
-  100% {
-    opacity: 0.82;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
 .solution-reveal-frame {
   position: relative;
-  border-radius: 0.5rem;
-  padding: 2px;
-  background: linear-gradient(
-    145deg,
-    rgb(129 140 248),
-    rgb(34 211 238 / 0.9),
-    rgb(167 139 250 / 0.95),
-    rgb(82 82 82),
-    rgb(99 102 241 / 0.95)
-  );
-  box-shadow:
-    0 4px 18px rgb(0 0 0 / 0.45),
-    0 0 28px rgb(99 102 241 / 0.22),
-    0 0 14px rgb(6 182 212 / 0.18);
-  animation: solution-border-breathe 10s ease-in-out infinite;
+  isolation: isolate;
+  overflow: visible;
+  border-radius: 1.25rem;
+  padding: 3px;
 }
 
 .solution-reveal-inner {
-  border-radius: calc(0.5rem - 2px);
-  background: rgb(10 10 10);
+  position: relative;
+  overflow: hidden;
+  border-radius: calc(1.25rem - 3px);
+  background:
+    radial-gradient(ellipse at 18% 12%, rgb(34 211 238 / 0.08), transparent 52%),
+    radial-gradient(ellipse at 82% 88%, rgb(34 197 94 / 0.1), transparent 55%),
+    rgb(10 10 12);
+  padding: 1rem 1.25rem;
+}
+
+@media (min-width: 40rem) {
+  .solution-reveal-inner {
+    padding: 1rem 1.25rem;
+  }
+}
+
+.solution-reveal-timer {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 3;
+  display: grid;
+  height: 2.5rem;
+  width: 2.5rem;
+  place-items: center;
+}
+
+.solution-reveal-timer-ring {
+  height: 2.5rem;
+  width: 2.5rem;
+  transform: rotate(-90deg);
+}
+
+.solution-reveal-timer-label {
+  position: absolute;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: rgb(212 212 212);
 }
 
 @theme inline {

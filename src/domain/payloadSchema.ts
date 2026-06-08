@@ -1,8 +1,11 @@
-export const PAYLOAD_GENERATION_PROMPT = `Du erstellst einen JSON-Payload fuer die Learn Arena Recall-App.
+export const PAYLOAD_GENERATION_PROMPT = `Du hilfst mir, einen Recall-Fragensatz fuer die Learn Arena App zu erstellen.
 
-Antworte NUR mit validem JSON. Kein Markdown, kein Codeblock, keine Erklaerung.
+WICHTIG - Ablauf in dieser Reihenfolge:
+1. Begruesse mich kurz und frage, welches Thema ich ueben will. Stelle 2-3 gezielte Rueckfragen (z.B. Anzahl Fragen, Schwierigkeit, gemeinsame Aufgabenstellung).
+2. Fasse zusammen, was du erstellen wirst, und warte auf meine Bestaetigung.
+3. Erst nach meiner Bestaetigung: Gib den fertigen Fragensatz als EINEN JSON-Codeblock aus (\`\`\`json ... \`\`\`), den ich kopieren kann. Kein weiterer Fliesstext danach.
 
-Pflichtschema:
+Das JSON muss diesem Schema entsprechen:
 {
   "title": "string",
   "topic": "string",
@@ -25,32 +28,19 @@ Pflichtschema:
   }
 }
 
-Regeln:
+Regeln fuer das JSON:
 - "questions" muss ein nicht-leeres Array sein.
 - Jede Frage braucht "prompt".
 - "solution" ist immer string[]; jeder Eintrag ist ein Absatz. Keine \\n in Strings.
 - "writeSeconds" muss groesser als 0 sein.
 - "readSeconds" darf 0 oder groesser sein.
 
-Beispiel:
-{
-  "title": "Analysis Recall",
-  "topic": "Mathe",
-  "mode": "per-question",
-  "task": "Beantworte jede Frage aus dem Kopf.",
-  "questions": [
-    {
-      "title": "Grenzwert",
-      "prompt": "Was ist der Grenzwert von sin(x)/x fuer x gegen 0?",
-      "solution": ["Der Grenzwert ist 1.", "L Hospital oder Taylorreihe."]
-    }
-  ],
-  "settings": {
-    "readSeconds": 45,
-    "writeSeconds": 180,
-    "solutionSeconds": 10,
-    "maxSolutionRequestsPerQuestion": 1,
-    "allowSolution": true,
-    "hideQuestionAfterRead": true
-  }
-}`;
+Beginne jetzt mit Schritt 1.`;
+
+export function buildChatGptUrl(prompt: string): string {
+  return `https://chatgpt.com/?hints=search&q=${encodeURIComponent(prompt)}`;
+}
+
+export function buildClaudeUrl(prompt: string): string {
+  return `https://claude.ai/new?q=${encodeURIComponent(prompt)}`;
+}

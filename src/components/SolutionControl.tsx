@@ -1,5 +1,7 @@
 import { Lightbulb } from "lucide-react";
+import { CHORD_META_DOT } from "../hooks/keyboardChords";
 import { getRevealBadgeClass } from "../domain/session";
+import { ShortcutActionButton } from "./ShortcutActionButton";
 import {
   Tooltip,
   TooltipContent,
@@ -13,6 +15,7 @@ type SolutionControlProps = {
   disabled: boolean;
   remaining: number;
   max: number;
+  resetDep?: unknown;
   onRequest: () => void;
 };
 
@@ -36,6 +39,7 @@ export function SolutionControl({
   disabled,
   remaining,
   max,
+  resetDep,
   onRequest,
 }: SolutionControlProps) {
   if (max <= 0) return null;
@@ -52,25 +56,31 @@ export function SolutionControl({
     <Tooltip>
       <TooltipTrigger
         render={
-          <button
-            type="button"
+          <ShortcutActionButton
+            label="Loesung"
+            onAction={onRequest}
+            chord={CHORD_META_DOT}
             disabled={disabled}
-            onClick={onRequest}
-            aria-label={tooltip}
+            allowInEditable
+            resetDep={resetDep}
+            ariaLabel={tooltip}
+            labelClassName="text-xs font-medium text-neutral-400"
+            icon={
+              <Lightbulb
+                className={`h-4 w-4 shrink-0 ${
+                  solutionVisible ? "text-indigo-300/90" : "text-neutral-400"
+                }`}
+              />
+            }
+            suffix={
+              <span
+                className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${getRevealBadgeClass(remaining)}`}
+              >
+                {remaining}
+              </span>
+            }
             className="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-neutral-500 transition-colors hover:bg-neutral-800/80 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
-          >
-            <Lightbulb
-              className={`h-4 w-4 shrink-0 ${
-                solutionVisible ? "text-indigo-300/90" : "text-neutral-400"
-              }`}
-            />
-            <span className="text-xs font-medium text-neutral-400">Loesung</span>
-            <span
-              className={`rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${getRevealBadgeClass(remaining)}`}
-            >
-              {remaining}
-            </span>
-          </button>
+          />
         }
       />
       <TooltipContent side="top">{tooltip}</TooltipContent>

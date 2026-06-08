@@ -79,8 +79,14 @@ function normalizeQuestion(item: RawQuestion, index: number): Question {
   };
 }
 
+function stripCodeFence(raw: string): string {
+  const trimmed = raw.trim();
+  const fenced = trimmed.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return fenced ? fenced[1].trim() : trimmed;
+}
+
 export function normalizePayload(raw: string): Payload {
-  const parsed = JSON.parse(raw) as RawPayload;
+  const parsed = JSON.parse(stripCodeFence(raw)) as RawPayload;
 
   if (!parsed || typeof parsed !== "object") {
     throw new Error("Payload ist kein JSON-Objekt.");

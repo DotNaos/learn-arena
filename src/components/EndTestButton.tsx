@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { LogOut } from "lucide-react";
+import { CHORD_META_SLASH } from "../hooks/keyboardChords";
+import { ShortcutActionButton } from "./ShortcutActionButton";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,15 +29,16 @@ export function EndTestButton({ onConfirm, disabled = false }: EndTestButtonProp
 
   return (
     <>
-      <button
-        type="button"
+      <ShortcutActionButton
+        label="Test beenden"
+        onAction={() => setOpen(true)}
+        chord={CHORD_META_SLASH}
         disabled={disabled}
-        onClick={() => setOpen(true)}
+        enabled={!disabled && !open}
+        icon={<LogOut className="h-3.5 w-3.5" />}
+        labelClassName="text-xs font-medium"
         className="inline-flex items-center gap-1.5 text-xs text-neutral-500 transition-colors hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        <LogOut className="h-3.5 w-3.5" />
-        Test beenden
-      </button>
+      />
 
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>

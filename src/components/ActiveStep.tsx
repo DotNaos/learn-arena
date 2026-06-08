@@ -1,9 +1,12 @@
-import { Eye, Timer } from "lucide-react";
+import { LayoutGroup, motion } from "motion/react";
+import { Timer } from "lucide-react";
+import { layoutTransition } from "../ui/motionPresets";
 import type { Payload, Question } from "../domain/payload";
 import type { Settings } from "../domain/payload";
+import { getTestTimeState } from "../domain/session";
 import { AnswerPanel } from "./AnswerPanel";
-import { EndTestButton } from "./EndTestButton";
 import { CircularTimer } from "./CircularTimer";
+import { EndTestButton } from "./EndTestButton";
 import { QuestionPanel } from "./QuestionPanel";
 import { SolutionPanel } from "./SolutionPanel";
 import { MockModeBadge } from "./MockModeBadge";
@@ -65,63 +68,83 @@ export function ActiveStep({
   onEndTest,
   onSolution,
 }: ActiveStepProps) {
+  const testTime = getTestTimeState({
+    questionNumber,
+    totalQuestions,
+    roundEnded,
+    readRemaining,
+    writeRemaining,
+    readSeconds: settings.readSeconds,
+    writeSeconds: settings.writeSeconds,
+  });
+
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-neutral-950 text-neutral-100">
-      <header className="shrink-0 border-b border-neutral-800/80 px-3 py-2.5 sm:px-5">
+      <header className="shrink-0 border-b border-neutral-800/80 px-3 py-3 sm:px-5">
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex min-w-0 max-w-full items-center gap-1.5 sm:gap-2">
-              {mockMode && <MockModeBadge />}
-              <h1 className="truncate text-base font-semibold tracking-tight sm:text-lg">
+          <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+            {mockMode && <MockModeBadge />}
+            <div className="min-w-0">
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+                Test
+              </p>
+              <h1 className="truncate text-base font-semibold tracking-tight text-neutral-100 sm:text-lg">
                 {payload.title}
               </h1>
             </div>
           </div>
-
-          <div className="flex shrink-0 items-center gap-3 sm:gap-4">
-            <CircularTimer
-              minimal
-              label="Sichtbar"
-              icon={Eye}
-              remaining={readRemaining}
-              total={settings.readSeconds}
-            />
-            <CircularTimer
-              minimal
-              label="Antwort"
-              icon={Timer}
-              remaining={writeRemaining}
-              total={settings.writeSeconds}
-            />
-          </div>
+          <CircularTimer
+            minimal
+            label="Gesamt"
+            icon={Timer}
+            remaining={testTime.remaining}
+            total={testTime.total}
+          />
         </div>
       </header>
 
       <main className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-3 py-6 sm:px-5 sm:py-8">
-        <div className="flex w-full max-w-2xl flex-col gap-6 sm:gap-8">
-          <div className="flex w-full flex-col gap-4 sm:gap-5">
-            <QuestionPanel
-              payload={payload}
-              question={question}
-              started
-              finished={false}
-              questionVisible={questionVisible}
-            />
+        <LayoutGroup>
+          <motion.div
+            layout
+            transition={{ layout: layoutTransition }}
+            className="flex w-full max-w-2xl flex-col gap-6 sm:gap-8"
+          >
+            <motion.div
+              layout
+              transition={{ layout: layoutTransition }}
+              className="flex w-full flex-col gap-4 sm:gap-5"
+            >
+              <QuestionPanel
+                payload={payload}
+                question={question}
+                started
+                finished={false}
+                questionVisible={questionVisible}
+              />
 
-            <SolutionPanel
-              title={solutionTitle}
-              parts={solutionParts}
-              remaining={solutionRemaining}
-              visible={solutionVisible}
-            />
-          </div>
+              <SolutionPanel
+                title={solutionTitle}
+                parts={solutionParts}
+                remaining={solutionRemaining}
+                totalSeconds={settings.solutionSeconds}
+                visible={solutionVisible}
+              />
+            </motion.div>
 
-          <div className="flex w-full flex-col gap-3">
+            <motion.div
+              layout
+              transition={{ layout: layoutTransition }}
+              className="flex w-full flex-col gap-3"
+            >
             <AnswerPanel
               value={currentAnswer}
               disabled={answerDisabled}
               roundEnded={roundEnded}
               readRemaining={readRemaining}
+              writeRemaining={writeRemaining}
+              readSeconds={settings.readSeconds}
+              writeSeconds={settings.writeSeconds}
               questionNumber={questionNumber}
               totalQuestions={totalQuestions}
               onChange={onAnswerChange}
@@ -139,8 +162,9 @@ export function ActiveStep({
             <div className="flex justify-end">
               <EndTestButton onConfirm={onEndTest} />
             </div>
-          </div>
-        </div>
+            </motion.div>
+          </motion.div>
+        </LayoutGroup>
       </main>
     </div>
   );

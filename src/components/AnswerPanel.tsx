@@ -1,10 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { ArrowRight } from "lucide-react";
 import { countWords, getAnswerPlaceholder } from "../domain/session";
-import {
-  QuestionProgressBar,
-  QuestionProgressHeader,
-} from "./QuestionProgress";
+import { ShortcutActionButton } from "./ShortcutActionButton";
+import { QuestionProgressBlock } from "./QuestionProgress";
 import { SolutionControl } from "./SolutionControl";
 
 type AnswerPanelProps = {
@@ -12,6 +10,9 @@ type AnswerPanelProps = {
   disabled: boolean;
   roundEnded?: boolean;
   readRemaining?: number;
+  writeRemaining?: number;
+  readSeconds?: number;
+  writeSeconds?: number;
   onChange: (value: string) => void;
   nextLabel?: string;
   nextDisabled?: boolean;
@@ -32,6 +33,9 @@ export function AnswerPanel({
   disabled,
   roundEnded = false,
   readRemaining = 0,
+  writeRemaining = 0,
+  readSeconds = 0,
+  writeSeconds = 0,
   onChange,
   nextLabel = "Naechste Frage",
   nextDisabled = true,
@@ -46,60 +50,6 @@ export function AnswerPanel({
   questionNumber,
   totalQuestions = 0,
 }: AnswerPanelProps) {
-  const [metaHeld, setMetaHeld] = useState(false);
-  const enterReadyRef = useRef(true);
-  const onNextRef = useRef(onNext);
-  const nextDisabledRef = useRef(nextDisabled);
-
-  onNextRef.current = onNext;
-  nextDisabledRef.current = nextDisabled;
-
-  useEffect(() => {
-    enterReadyRef.current = true;
-  }, [questionNumber]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.metaKey) setMetaHeld(true);
-
-      if (
-        event.key === "Enter" &&
-        event.metaKey &&
-        onNextRef.current &&
-        !nextDisabledRef.current &&
-        enterReadyRef.current &&
-        !event.repeat
-      ) {
-        event.preventDefault();
-        enterReadyRef.current = false;
-        onNextRef.current();
-      }
-    };
-
-    const onKeyUp = (event: KeyboardEvent) => {
-      if (event.key === "Enter") {
-        enterReadyRef.current = true;
-      }
-
-      if (event.key === "Meta" || !event.metaKey) setMetaHeld(false);
-    };
-
-    const onBlur = () => {
-      enterReadyRef.current = true;
-      setMetaHeld(false);
-    };
-
-    document.addEventListener("keydown", onKeyDown, true);
-    document.addEventListener("keyup", onKeyUp, true);
-    window.addEventListener("blur", onBlur);
-
-    return () => {
-      document.removeEventListener("keydown", onKeyDown, true);
-      document.removeEventListener("keyup", onKeyUp, true);
-      window.removeEventListener("blur", onBlur);
-    };
-  }, []);
-
   const hasAnswer = value.trim().length > 0;
   const placeholder = getAnswerPlaceholder({ roundEnded, readRemaining });
   const revealCount = solutionReveals ?? 0;
@@ -108,21 +58,31 @@ export function AnswerPanel({
   const showToolbar = onNext || showSolutionControl;
   const showProgress = totalQuestions > 0 && questionNumber !== undefined;
   const wordCount = countWords(value);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (disabled) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      textareaRef.current?.focus();
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [disabled, questionNumber]);
 
   return (
     <div className="w-full">
       {showProgress ? (
-        <div className="mb-3">
-          <QuestionProgressHeader
-            questionNumber={questionNumber}
-            totalQuestions={totalQuestions}
-            wordCount={wordCount}
-          />
-          <QuestionProgressBar
-            questionNumber={questionNumber}
-            totalQuestions={totalQuestions}
-          />
-        </div>
+        <QuestionProgressBlock
+          questionNumber={questionNumber}
+          totalQuestions={totalQuestions}
+          wordCount={wordCount}
+          roundEnded={roundEnded}
+          readRemaining={readRemaining}
+          writeRemaining={writeRemaining}
+          readSeconds={readSeconds}
+          writeSeconds={writeSeconds}
+        />
       ) : (
         <div className="mb-2 flex justify-end">
           <span className="text-[11px] tabular-nums text-neutral-600">
@@ -132,11 +92,17 @@ export function AnswerPanel({
       )}
       <div className="w-full overflow-hidden rounded-3xl border border-neutral-800/90 bg-neutral-900/50 shadow-sm">
         <textarea
+          ref={textareaRef}
           value={value}
           disabled={disabled}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === "Enter" && event.metaKey) {
+            if (
+              event.metaKey &&
+              (event.key === "Enter" ||
+                event.key === "." ||
+                event.key === "/")
+            ) {
               event.preventDefault();
             }
           }}
@@ -155,44 +121,27 @@ export function AnswerPanel({
                   disabled={solutionButtonDisabled}
                   remaining={revealCount}
                   max={solutionRevealsMax}
+                  resetDep={questionNumber}
                   onRequest={onSolutionRequest!}
                 />
               )}
             </div>
 
             {onNext && (
-              <button
-                type="button"
+              <ShortcutActionButton
+                label={nextLabel}
+                onAction={onNext}
                 disabled={nextDisabled}
-                onClick={onNext}
-                aria-label={nextLabel}
-                className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:border-transparent disabled:bg-neutral-800 disabled:text-neutral-600 ${
+                resetDep={questionNumber}
+                allowInEditable
+                icon={<ArrowRight className="h-4 w-4 shrink-0" />}
+                chipVariant={hasAnswer ? "light" : "dark"}
+                className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed ${
                   hasAnswer
-                    ? "bg-neutral-100 text-neutral-950 hover:bg-neutral-300"
-                    : "bg-neutral-800/60 text-neutral-300 hover:bg-neutral-800 hover:text-neutral-100"
+                    ? "bg-neutral-100 text-neutral-950 hover:bg-neutral-300 disabled:border-transparent disabled:bg-neutral-800 disabled:text-neutral-600"
+                    : "bg-transparent text-neutral-500 hover:text-neutral-200 disabled:bg-transparent disabled:text-neutral-600"
                 }`}
-              >
-                <span className="relative inline-flex items-center">
-                  <span
-                    className={`text-sm font-medium ${
-                      metaHeld ? "text-transparent" : "opacity-100"
-                    }`}
-                  >
-                    {nextLabel}
-                  </span>
-                  <span
-                    aria-hidden
-                    className={`pointer-events-none absolute inset-0 flex items-center justify-center gap-1 text-sm font-medium ${
-                      metaHeld ? "opacity-100" : "opacity-0"
-                    }`}
-                  >
-                    <span>⌘</span>
-                    <span className="font-normal opacity-50">+</span>
-                    <span>↵</span>
-                  </span>
-                </span>
-                <ArrowRight className="h-4 w-4 shrink-0" />
-              </button>
+              />
             )}
           </div>
         )}

@@ -111,6 +111,120 @@ export function getRingColor(ratio: number): string {
   return "#fb7185";
 }
 
+export function getQuestionBudget(
+  readSeconds: number,
+  writeSeconds: number,
+): number {
+  return readSeconds + writeSeconds;
+}
+
+export function getCurrentQuestionRemaining(state: {
+  roundEnded: boolean;
+  readRemaining: number;
+  writeRemaining: number;
+}): number {
+  if (state.roundEnded) return 0;
+  return state.readRemaining + state.writeRemaining;
+}
+
+export function getTestTimeState(state: {
+  questionNumber: number;
+  totalQuestions: number;
+  roundEnded: boolean;
+  readRemaining: number;
+  writeRemaining: number;
+  readSeconds: number;
+  writeSeconds: number;
+}): {
+  remaining: number;
+  total: number;
+  ratio: number;
+  questionBudget: number;
+} {
+  const questionBudget = getQuestionBudget(state.readSeconds, state.writeSeconds);
+  const testTotal = state.totalQuestions * questionBudget;
+  const currentRemaining = getCurrentQuestionRemaining(state);
+  const futureQuestions = state.totalQuestions - state.questionNumber;
+  const testRemaining = currentRemaining + futureQuestions * questionBudget;
+
+  return {
+    remaining: testRemaining,
+    total: testTotal,
+    ratio:
+      testTotal > 0 ? Math.max(0, Math.min(1, testRemaining / testTotal)) : 0,
+    questionBudget,
+  };
+}
+
+export function getSequentialSegmentFill(
+  segmentIndex: number,
+  testRemaining: number,
+  testTotal: number,
+  questionBudget: number,
+): { widthRatio: number; leftRatio: number } {
+  if (questionBudget <= 0 || testTotal <= 0) {
+    return { widthRatio: 0, leftRatio: 0 };
+  }
+
+  const depletedUnits = (testTotal - testRemaining) / questionBudget;
+  const fillStart = depletedUnits;
+  const fillEnd = testTotal / questionBudget;
+  const segmentStart = segmentIndex;
+  const segmentEnd = segmentIndex + 1;
+  const overlapStart = Math.max(fillStart, segmentStart);
+  const overlapEnd = Math.min(fillEnd, segmentEnd);
+  const overlap = Math.max(0, overlapEnd - overlapStart);
+
+  return {
+    widthRatio: Math.max(0, Math.min(1, overlap)),
+    leftRatio: Math.max(0, Math.min(1, overlapStart - segmentStart)),
+  };
+}
+
+export type QuestionTimerPhase = "read" | "write" | "done";
+
+export function getQuestionTimerState(state: {
+  roundEnded: boolean;
+  readRemaining: number;
+  writeRemaining: number;
+  readSeconds: number;
+  writeSeconds: number;
+}): {
+  remaining: number;
+  total: number;
+  ratio: number;
+  phase: QuestionTimerPhase;
+} {
+  if (state.roundEnded) {
+    return {
+      remaining: 0,
+      total: state.writeSeconds,
+      ratio: 0,
+      phase: "done",
+    };
+  }
+
+  if (state.readRemaining > 0) {
+    const total = state.readSeconds;
+    const remaining = state.readRemaining;
+    return {
+      remaining,
+      total,
+      ratio: total > 0 ? Math.max(0, Math.min(1, remaining / total)) : 0,
+      phase: "read",
+    };
+  }
+
+  const total = state.writeSeconds;
+  const remaining = state.writeRemaining;
+  return {
+    remaining,
+    total,
+    ratio: total > 0 ? Math.max(0, Math.min(1, remaining / total)) : 0,
+    phase: "write",
+  };
+}
+
 export const RING_CIRCUMFERENCE = 263.89;
 
 export function countWords(text: string): number {

@@ -1,4 +1,29 @@
 import type { Payload, Settings } from "./payload";
+
+export function serializePayload(payload: Payload): string {
+  return JSON.stringify(
+    {
+      title: payload.title,
+      topic: payload.topic,
+      mode: payload.mode,
+      task: payload.task,
+      questions: payload.questions,
+      settings: payload.settings,
+    },
+    null,
+    2,
+  );
+}
+
+export function buildPayloadFilename(payload: Payload): string {
+  const slug =
+    payload.title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "") || "fragensatz";
+
+  return `${slug}.json`;
+}
 import type { SessionState } from "./session";
 
 type ExportInput = {
