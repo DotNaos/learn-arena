@@ -63,33 +63,64 @@ export function buildExportText(input: ExportInput): string {
   ];
 
   if (payload) {
-    payload.questions.forEach((question, index) => {
-      lines.push(`${index + 1}. ${question.title}`);
-      lines.push(`Frage: ${question.prompt}`);
-
-      if (isChoiceQuestion(question)) {
-        lines.push(
-          question.type === "multiple"
-            ? "Typ: Multiple Choice (mehrere richtig)"
-            : "Typ: Single Choice (eine richtig)",
-        );
-        lines.push("Optionen:");
-        question.choices.forEach((choice, choiceIndex) => {
-          lines.push(`  ${choiceLetter(choiceIndex)}) ${choice}`);
-        });
-      }
-
-      lines.push("");
-      lines.push(`Meine Antwort: ${getDisplayAnswer(question, resolvedAnswers[index])}`);
-
-      const reference = getReferenceSolution(question);
-      if (reference) {
-        lines.push(`Musterloesung: ${reference}`);
-      }
-
-      lines.push("");
-    });
+    appendQuestionBlocks(lines, payload, resolvedAnswers);
   }
+
+  return lines.join("\n");
+}
+
+function appendQuestionBlocks(
+  lines: string[],
+  payload: Payload,
+  answers: string[],
+): void {
+  payload.questions.forEach((question, index) => {
+    lines.push(`${index + 1}. ${question.title}`);
+    lines.push(`Frage: ${question.prompt}`);
+
+    if (isChoiceQuestion(question)) {
+      lines.push(
+        question.type === "multiple"
+          ? "Typ: Multiple Choice (mehrere richtig)"
+          : "Typ: Single Choice (eine richtig)",
+      );
+      lines.push("Optionen:");
+      question.choices.forEach((choice, choiceIndex) => {
+        lines.push(`  ${choiceLetter(choiceIndex)}) ${choice}`);
+      });
+    }
+
+    lines.push("");
+    lines.push(`Meine Antwort: ${getDisplayAnswer(question, answers[index])}`);
+
+    const reference = getReferenceSolution(question);
+    if (reference) {
+      lines.push(`Musterloesung: ${reference}`);
+    }
+
+    lines.push("");
+  });
+}
+
+/** Combined grading export across every completed test in a learn plan. */
+export function buildPlanGradingExport(
+  planTitle: string,
+  tests: { payload: Payload; answers: string[] }[],
+): string {
+  const lines = [
+    `Bitte bewerte meine Antworten zu diesem Lernplan: ${planTitle}.`,
+    "Gib pro Test und Frage kurzes Feedback (richtig / teilweise / falsch und",
+    "was fehlt) und am Ende eine Gesamteinschaetzung mit Lerntipps pro Test.",
+    "",
+  ];
+
+  tests.forEach((test, index) => {
+    lines.push("============================================================");
+    lines.push(`Test ${index + 1}: ${test.payload.title}`);
+    lines.push("============================================================");
+    lines.push("");
+    appendQuestionBlocks(lines, test.payload, test.answers);
+  });
 
   return lines.join("\n");
 }

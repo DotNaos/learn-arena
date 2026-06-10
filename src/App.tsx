@@ -1,17 +1,34 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ActiveStep } from "./components/ActiveStep";
 import { DoneStep } from "./components/DoneStep";
+import { PlanView } from "./components/PlanView";
 import { ReadyStep } from "./components/ReadyStep";
 import { SetupStep } from "./components/SetupStep";
 import {
   buildExportFromSession,
   buildPayloadFilename,
+  buildPlanGradingExport,
   copyText,
   downloadText,
   serializePayload,
 } from "./domain/export";
-import { normalizePayload } from "./domain/payload";
+import { normalizeImport } from "./domain/payload";
 import { buildPayloadGenerationPrompt } from "./domain/payloadSchema";
+import {
+  addTest,
+  getPlanTests,
+  importPlan,
+  listPlans,
+  listTests,
+  loadLibrary,
+  mergeLibrary,
+  parseLibrary,
+  recordResult,
+  removePlan,
+  removeTest,
+  saveLibrary,
+  serializeLibrary,
+} from "./domain/library";
 import {
   createInitialSessionState,
   getSolutionRevealsRemaining,
@@ -25,6 +42,8 @@ import {
 import { getWizardStep } from "./domain/wizard";
 import { KeyboardShortcutsHelp } from "./components/KeyboardShortcutsHelp";
 import { ThemeToggle } from "./components/ThemeToggle";
+
+type PlanContext = { planId: string; index: number };
 
 const mockConfig = getMockConfig();
 
@@ -81,24 +100,136 @@ export default function App() {
       : createInitialSessionState(),
   );
   const [currentAnswer, setCurrentAnswer] = useState("");
+  const [library, setLibrary] = useState(loadLibrary);
+  const [homeView, setHomeView] = useState<"setup" | "plan">("setup");
+  const [activePlanId, setActivePlanId] = useState<string | null>(null);
+  const [currentTestId, setCurrentTestId] = useState<string | null>(null);
+  const [planContext, setPlanContext] = useState<PlanContext | null>(null);
+  const recordedRef = useRef(false);
 
   const step = getWizardStep(session);
 
-  const loadPayload = useCallback((raw: string) => {
-    const payload = normalizePayload(raw);
+  useEffect(() => {
+    saveLibrary(library);
+  }, [library]);
 
-    setSession(
-      createSessionFromPayload(
-        payload,
-        "Fragensatz geladen. Pruefe die Uebersicht und starte den Test.",
-      ),
+  // Persist a finished test's answers into the library exactly once per run.
+  useEffect(() => {
+    if (!session.finished || !currentTestId || recordedRef.current) return;
+    recordedRef.current = true;
+    const completedAt = new Date().toISOString();
+    setLibrary((lib) =>
+      recordResult(lib, currentTestId, {
+        answers: session.answers,
+        solutionRequests: session.solutionRequests,
+        completedAt,
+      }),
     );
-    setCurrentAnswer("");
-  }, []);
+  }, [session.finished, session.answers, session.solutionRequests, currentTestId]);
 
   const handlePayloadError = useCallback((message: string) => {
     setSession((prev) => ({ ...prev, message }));
   }, []);
+
+  const beginTest = useCallback(
+    (
+      payload: NonNullable<SessionState["payload"]>,
+      testId: string,
+      plan: PlanContext | null,
+      message: string,
+    ) => {
+      setCurrentTestId(testId);
+      setPlanContext(plan);
+      recordedRef.current = false;
+      setSession(createSessionFromPayload(payload, message));
+      setCurrentAnswer("");
+    },
+    [],
+  );
+
+  // Import a pasted blob: either a single test (-> ready screen) or a whole plan.
+  const handleImport = useCallback(
+    (raw: string) => {
+      const result = normalizeImport(raw);
+
+      if (result.kind === "plan") {
+        const { library: next, planId } = importPlan(
+          library,
+          result.title,
+          result.tests,
+        );
+        setLibrary(next);
+        setActivePlanId(planId);
+        setHomeView("plan");
+        return;
+      }
+
+      const { library: next, id } = addTest(library, result.payload);
+      setLibrary(next);
+      beginTest(
+        result.payload,
+        id,
+        null,
+        "Fragensatz geladen. Pruefe die Uebersicht und starte den Test.",
+      );
+    },
+    [library, beginTest],
+  );
+
+  const openTest = useCallback(
+    (id: string) => {
+      const test = library.tests[id];
+      if (!test) return;
+      beginTest(test.payload, id, null, "Fragensatz geladen. Starte den Test.");
+    },
+    [library, beginTest],
+  );
+
+  const openPlan = useCallback((id: string) => {
+    setActivePlanId(id);
+    setHomeView("plan");
+  }, []);
+
+  const startTestInPlan = useCallback(
+    (index: number) => {
+      if (!activePlanId) return;
+      const plan = library.plans[activePlanId];
+      const testId = plan?.testIds[index];
+      const test = testId ? library.tests[testId] : undefined;
+      if (!plan || !testId || !test) return;
+      beginTest(test.payload, testId, { planId: activePlanId, index }, "Test gestartet.");
+    },
+    [activePlanId, library, beginTest],
+  );
+
+  const backToPlan = useCallback(() => {
+    const planId = planContext?.planId ?? activePlanId;
+    setSession(createInitialSessionState());
+    setCurrentAnswer("");
+    setCurrentTestId(null);
+    setPlanContext(null);
+    recordedRef.current = false;
+    if (planId) setActivePlanId(planId);
+    setHomeView("plan");
+  }, [planContext, activePlanId]);
+
+  const nextInPlan = useCallback(() => {
+    if (!planContext) return;
+    const plan = library.plans[planContext.planId];
+    const nextIndex = planContext.index + 1;
+    const testId = plan?.testIds[nextIndex];
+    const test = testId ? library.tests[testId] : undefined;
+    if (!plan || !testId || !test) {
+      backToPlan();
+      return;
+    }
+    beginTest(
+      test.payload,
+      testId,
+      { planId: planContext.planId, index: nextIndex },
+      "Naechster Test gestartet.",
+    );
+  }, [planContext, library, beginTest, backToPlan]);
 
   const resetToSetup = useCallback(() => {
     setSession(
@@ -107,6 +238,11 @@ export default function App() {
         : createInitialSessionState(),
     );
     setCurrentAnswer("");
+    setCurrentTestId(null);
+    setPlanContext(null);
+    setActivePlanId(null);
+    setHomeView("setup");
+    recordedRef.current = false;
   }, []);
 
   const retryTest = useCallback(() => {
@@ -116,6 +252,7 @@ export default function App() {
       return;
     }
 
+    recordedRef.current = false;
     setSession((prev) => {
       if (!prev.payload) return prev;
       return createSessionFromPayload(
@@ -125,6 +262,55 @@ export default function App() {
     });
     setCurrentAnswer("");
   }, []);
+
+  const deleteTest = useCallback((id: string) => {
+    setLibrary((lib) => removeTest(lib, id));
+  }, []);
+
+  const deletePlan = useCallback((id: string) => {
+    setLibrary((lib) => removePlan(lib, id));
+  }, []);
+
+  const deleteActivePlan = useCallback(() => {
+    if (activePlanId) setLibrary((lib) => removePlan(lib, activePlanId));
+    setActivePlanId(null);
+    setHomeView("setup");
+  }, [activePlanId]);
+
+  const exportLibrary = useCallback(() => {
+    downloadText(serializeLibrary(library), "learn-arena-bibliothek.json");
+  }, [library]);
+
+  const importLibraryFile = useCallback(
+    async (file: File) => {
+      try {
+        const incoming = parseLibrary(await file.text());
+        setLibrary((lib) => mergeLibrary(lib, incoming));
+      } catch (error) {
+        handlePayloadError(
+          error instanceof Error
+            ? error.message
+            : "Bibliothek konnte nicht geladen werden.",
+        );
+      }
+    },
+    [handlePayloadError],
+  );
+
+  const copyPlanGrading = useCallback(async () => {
+    if (!activePlanId) return;
+    const plan = library.plans[activePlanId];
+    if (!plan) return;
+    const done = getPlanTests(library, plan).filter((test) => test.lastResult);
+    const text = buildPlanGradingExport(
+      plan.title,
+      done.map((test) => ({
+        payload: test.payload,
+        answers: test.lastResult!.answers,
+      })),
+    );
+    await copyText(text);
+  }, [activePlanId, library]);
 
   useEffect(() => {
     const { started, finished, roundEnded, payload } = session;
@@ -323,13 +509,35 @@ export default function App() {
 
   let content = null;
 
-  if (step === "setup") {
+  const activePlan =
+    homeView === "plan" && activePlanId ? library.plans[activePlanId] : null;
+
+  if (step === "setup" && activePlan) {
+    content = (
+      <PlanView
+        plan={activePlan}
+        tests={getPlanTests(library, activePlan)}
+        onStartTest={startTestInPlan}
+        onCopyGrading={copyPlanGrading}
+        onBack={resetToSetup}
+        onDeletePlan={deleteActivePlan}
+      />
+    );
+  } else if (step === "setup") {
     content = (
       <SetupStep
         message={session.message}
-        onLoad={loadPayload}
+        tests={listTests(library)}
+        plans={listPlans(library)}
+        onLoad={handleImport}
         onError={handlePayloadError}
         onCopyPrompt={handleCopyPrompt}
+        onOpenTest={openTest}
+        onOpenPlan={openPlan}
+        onDeleteTest={deleteTest}
+        onDeletePlan={deletePlan}
+        onExportLibrary={exportLibrary}
+        onImportLibraryFile={importLibraryFile}
       />
     );
   } else if (step === "ready" && session.payload) {
@@ -342,14 +550,25 @@ export default function App() {
       />
     );
   } else if (step === "done" && session.payload) {
+    const planActive = Boolean(planContext);
+    const hasNextInPlan = planContext
+      ? Boolean(
+          library.plans[planContext.planId]?.testIds[planContext.index + 1],
+        )
+      : false;
+
     content = (
       <DoneStep
         payload={session.payload}
+        planActive={planActive}
+        hasNextInPlan={hasNextInPlan}
         onCopy={handleCopy}
         onDownloadAnswers={handleDownloadAnswers}
         onDownloadPayload={handleDownloadPayload}
         onRetry={retryTest}
         onReset={resetToSetup}
+        onNextInPlan={nextInPlan}
+        onBackToPlan={backToPlan}
       />
     );
   } else if (step === "active" && session.payload) {

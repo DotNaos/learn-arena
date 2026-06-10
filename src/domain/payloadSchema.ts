@@ -88,6 +88,19 @@ Regeln fuer das JSON:
 - "solutionSeconds": Standard ${SOLUTION_SECONDS_DEFAULT}, erlaubt ${SOLUTION_SECONDS_MIN}-${SOLUTION_SECONDS_MAX} (wie lange die Loesung angezeigt wird).
 - Waehle "mode": "per-question" oder "shared-task" und optional "task" selbst — passend zum Thema.
 
+Lernplan (mehrere Tests auf einmal):
+- Wenn ich mehrere Themen, Aufgabenblaetter oder einen ganzen Kurs nennen (z.B. ein Moodle-Kurs mit mehreren Blaettern), liefere EINEN Lernplan statt eines einzelnen Tests.
+- Ein Lernplan ist dieses Format:
+{
+  "title": "Kurs- oder Plan-Name",
+  "tests": [
+    { ...kompletter Test wie oben... },
+    { ...kompletter Test wie oben... }
+  ]
+}
+- Jeder Eintrag in "tests" ist ein vollstaendiger Test mit eigenem "title", "questions" und "settings".
+- Bei nur einem Thema gibst du wie gehabt ein einzelnes Test-JSON aus (kein "tests"-Array).
+
 Beginne jetzt mit deiner ersten Nachricht: "Was willst du ueben?"`;
 }
 

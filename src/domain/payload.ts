@@ -138,9 +138,7 @@ function stripCodeFence(raw: string): string {
   return fenced ? fenced[1].trim() : trimmed;
 }
 
-export function normalizePayload(raw: string): Payload {
-  const parsed = JSON.parse(stripCodeFence(raw)) as RawPayload;
-
+function normalizePayloadObject(parsed: RawPayload): Payload {
   if (!parsed || typeof parsed !== "object") {
     throw new Error("Payload ist kein JSON-Objekt.");
   }
@@ -184,4 +182,41 @@ export function normalizePayload(raw: string): Payload {
     questions: parsed.questions.map(normalizeQuestion),
     settings: nextSettings,
   };
+}
+
+export function normalizePayload(raw: string): Payload {
+  return normalizePayloadObject(JSON.parse(stripCodeFence(raw)) as RawPayload);
+}
+
+export type ImportResult =
+  | { kind: "test"; payload: Payload }
+  | { kind: "plan"; title: string; tests: Payload[] };
+
+type RawPlan = {
+  title?: string;
+  tests?: unknown;
+};
+
+/**
+ * Parse a pasted JSON blob into either a single test or a learn plan
+ * (a `tests` array of test payloads). Plans let one paste import a whole course.
+ */
+export function normalizeImport(raw: string): ImportResult {
+  const parsed = JSON.parse(stripCodeFence(raw)) as RawPlan & RawPayload;
+
+  if (parsed && typeof parsed === "object" && Array.isArray(parsed.tests)) {
+    const tests = parsed.tests.map((test) =>
+      normalizePayloadObject(test as RawPayload),
+    );
+    if (tests.length === 0) {
+      throw new Error("Der Lernplan enthaelt keine Tests.");
+    }
+    return {
+      kind: "plan",
+      title: parsed.title || "Lernplan",
+      tests,
+    };
+  }
+
+  return { kind: "test", payload: normalizePayloadObject(parsed) };
 }

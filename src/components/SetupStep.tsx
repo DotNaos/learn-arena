@@ -27,14 +27,24 @@ import {
   ChatGptIcon,
   ClaudeIcon,
 } from "./AiChatLink";
+import type { LearnPlan, LibraryTest } from "../domain/library";
 import { HowToDialog } from "./HowToDialog";
+import { LibraryPanel } from "./LibraryPanel";
 import { ShortcutActionButton } from "./ShortcutActionButton";
 
 type SetupStepProps = {
   message: string;
+  tests: LibraryTest[];
+  plans: LearnPlan[];
   onLoad: (raw: string) => void;
   onError: (message: string) => void;
   onCopyPrompt: () => void;
+  onOpenTest: (id: string) => void;
+  onOpenPlan: (id: string) => void;
+  onDeleteTest: (id: string) => void;
+  onDeletePlan: (id: string) => void;
+  onExportLibrary: () => void;
+  onImportLibraryFile: (file: File) => void;
 };
 
 type TutorialStepProps = {
@@ -55,9 +65,17 @@ function TutorialStep({ step, children }: TutorialStepProps) {
 
 export function SetupStep({
   message,
+  tests,
+  plans,
   onLoad,
   onError,
   onCopyPrompt,
+  onOpenTest,
+  onOpenPlan,
+  onDeleteTest,
+  onDeletePlan,
+  onExportLibrary,
+  onImportLibraryFile,
 }: SetupStepProps) {
   const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -153,8 +171,8 @@ export function SetupStep({
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
-      <main className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-4 py-6 sm:px-6">
-        <div className="w-full max-w-sm space-y-8">
+      <main className="flex min-h-0 flex-1 flex-col items-center overflow-y-auto px-4 py-6 sm:px-6">
+        <div className="my-auto w-full max-w-sm space-y-8">
           <div className="flex flex-col items-center gap-3">
             <h1 className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">
               Learn Arena
@@ -268,6 +286,17 @@ export function SetupStep({
               </div>
             </TutorialStep>
           </div>
+
+          <LibraryPanel
+            tests={tests}
+            plans={plans}
+            onOpenTest={onOpenTest}
+            onOpenPlan={onOpenPlan}
+            onDeleteTest={onDeleteTest}
+            onDeletePlan={onDeletePlan}
+            onExport={onExportLibrary}
+            onImportFile={onImportLibraryFile}
+          />
 
           {message && (
             <p className="text-center text-xs text-neutral-600 dark:text-neutral-400">{message}</p>
