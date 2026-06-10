@@ -19,15 +19,15 @@ const CHIP_STYLES: Record<
   Record<ChipTone, string>
 > = {
   dark: {
-    idle: "bg-neutral-800 text-neutral-500",
-    partial: "bg-neutral-700 text-neutral-200 ring-1 ring-neutral-600/70",
+    idle: "bg-neutral-200 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-500",
+    partial: "bg-neutral-300 dark:bg-neutral-700 text-neutral-800 dark:text-neutral-200 ring-1 ring-neutral-400/70 dark:ring-neutral-600/70",
     active:
-      "bg-neutral-100 text-neutral-950 shadow-[0_0_10px_rgba(255,255,255,0.4)]",
+      "bg-neutral-900 dark:bg-neutral-100 text-neutral-50 dark:text-neutral-950 shadow-[0_0_10px_rgba(255,255,255,0.4)]",
   },
   light: {
-    idle: "bg-neutral-200/90 text-neutral-500",
-    partial: "bg-neutral-300 text-neutral-800",
-    active: "bg-neutral-800 text-neutral-100",
+    idle: "bg-neutral-800/90 dark:bg-neutral-200/90 text-neutral-500 dark:text-neutral-500",
+    partial: "bg-neutral-700 dark:bg-neutral-300 text-neutral-200 dark:text-neutral-800",
+    active: "bg-neutral-200 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100",
   },
 };
 

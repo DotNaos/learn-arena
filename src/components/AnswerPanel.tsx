@@ -74,12 +74,12 @@ export function AnswerPanel({
         />
       ) : (
         <div className="mb-2 flex justify-end">
-          <span className="text-[11px] tabular-nums text-neutral-600">
+          <span className="text-[11px] tabular-nums text-neutral-400 dark:text-neutral-600">
             {wordCount} Woerter
           </span>
         </div>
       )}
-      <div className="w-full overflow-hidden rounded-3xl border border-neutral-800/90 bg-neutral-900/50 shadow-sm">
+      <div className="w-full overflow-hidden rounded-3xl border border-neutral-200/90 dark:border-neutral-800/90 bg-neutral-100/50 dark:bg-neutral-900/50 shadow-sm">
         <AnswerEditor
           value={value}
           placeholder={placeholder}
@@ -116,8 +116,8 @@ export function AnswerPanel({
                 chipVariant={hasAnswer ? "light" : "dark"}
                 className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed ${
                   hasAnswer
-                    ? "bg-neutral-100 text-neutral-950 hover:bg-neutral-300 disabled:border-transparent disabled:bg-neutral-800 disabled:text-neutral-600"
-                    : "bg-transparent text-neutral-500 hover:text-neutral-200 disabled:bg-transparent disabled:text-neutral-600"
+                    ? "bg-neutral-900 dark:bg-neutral-100 text-neutral-50 dark:text-neutral-950 hover:bg-neutral-700 dark:hover:bg-neutral-300 disabled:border-transparent disabled:bg-neutral-200 dark:disabled:bg-neutral-800 disabled:text-neutral-400 dark:disabled:text-neutral-600"
+                    : "bg-transparent text-neutral-500 dark:text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200 disabled:bg-transparent disabled:text-neutral-400 dark:disabled:text-neutral-600"
                 }`}
               />
             )}

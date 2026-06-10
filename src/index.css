@@ -38,6 +38,24 @@ button:not(:disabled) {
   }
 }
 
+/*
+ * Prevent iOS/iPadOS Safari from auto-zooming when a text field is focused.
+ * Mobile browsers zoom in whenever a focused field has a font-size below 16px,
+ * so on touch devices we bump every editable surface to at least 16px while
+ * leaving the more compact desktop sizing untouched.
+ */
+@media (pointer: coarse) {
+  .answer-composer-editor .ProseMirror {
+    font-size: 16px;
+  }
+
+  input,
+  textarea,
+  [contenteditable] {
+    font-size: 16px !important;
+  }
+}
+
 .answer-composer-editor .ProseMirror h1,
 .answer-composer-editor .ProseMirror h2,
 .answer-composer-editor .ProseMirror h3 {

@@ -24,6 +24,7 @@ import {
 } from "./domain/mock";
 import { getWizardStep } from "./domain/wizard";
 import { KeyboardShortcutsHelp } from "./components/KeyboardShortcutsHelp";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 const mockConfig = getMockConfig();
 
@@ -358,6 +359,7 @@ export default function App() {
     if (currentQuestion) {
       const hasMoreQuestions =
         session.currentIndex < session.payload.questions.length - 1;
+      const hasAnswerInput = currentAnswer.trim().length > 0;
 
       content = (
         <ActiveStep
@@ -386,9 +388,13 @@ export default function App() {
             (getSolutionRevealsRemaining(session) ?? 0) <= 0
           }
           nextLabel={
-            hasMoreQuestions ? "Naechste Frage" : "Frage abschliessen"
+            !hasAnswerInput
+              ? "Ueberspringen"
+              : hasMoreQuestions
+                ? "Naechste Frage"
+                : "Frage abschliessen"
           }
-          nextDisabled={mockConfig.enabled ? false : !session.roundEnded}
+          nextDisabled={false}
           onAnswerChange={handleAnswerChange}
           onNext={handleNextOrFinish}
           onEndTest={endTest}
@@ -403,6 +409,7 @@ export default function App() {
   return (
     <>
       {content}
+      <ThemeToggle />
       <KeyboardShortcutsHelp step={step} />
     </>
   );

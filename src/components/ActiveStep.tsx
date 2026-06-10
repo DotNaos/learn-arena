@@ -79,16 +79,16 @@ export function ActiveStep({
   });
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-neutral-950 text-neutral-100">
-      <header className="shrink-0 border-b border-neutral-800/80 px-3 py-3 sm:px-5">
+    <div className="flex h-dvh flex-col overflow-hidden bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
+      <header className="shrink-0 border-b border-neutral-200/80 dark:border-neutral-800/80 px-3 py-3 sm:px-5">
         <div className="flex items-center gap-2 sm:gap-3">
           <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             {mockMode && <MockModeBadge />}
             <div className="min-w-0">
-              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-neutral-500">
+              <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-neutral-500 dark:text-neutral-500">
                 Test
               </p>
-              <h1 className="truncate text-base font-semibold tracking-tight text-neutral-100 sm:text-lg">
+              <h1 className="truncate text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-lg">
                 {payload.title}
               </h1>
             </div>

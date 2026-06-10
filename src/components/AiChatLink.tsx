@@ -67,13 +67,13 @@ export function AiChatOpenButton({
 
   return (
     <div ref={containerRef} className="relative">
-      <div className="flex overflow-hidden rounded-lg border border-neutral-800 bg-neutral-900/50">
+      <div className="flex overflow-hidden rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100/50 dark:bg-neutral-900/50">
         <button
           type="button"
           onClick={openSelected}
-          className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-neutral-900"
+          className="flex min-w-0 flex-1 items-center gap-2.5 px-3 py-2.5 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-900"
         >
-          <span className="relative inline-flex h-4 w-4 shrink-0 items-center justify-center text-neutral-100">
+          <span className="relative inline-flex h-4 w-4 shrink-0 items-center justify-center text-neutral-900 dark:text-neutral-100">
             <span
               className={`absolute inset-0 flex items-center justify-center transition-opacity duration-150 ${
                 showExternalIcon ? "opacity-0" : "opacity-100"
@@ -88,7 +88,7 @@ export function AiChatOpenButton({
               aria-hidden
             />
           </span>
-          <span className="shrink-0 text-sm font-medium text-neutral-100">
+          <span className="shrink-0 text-sm font-medium text-neutral-900 dark:text-neutral-100">
             {selected.label}
           </span>
           <span className="min-w-0 flex-1" aria-hidden />
@@ -105,7 +105,7 @@ export function AiChatOpenButton({
           onClick={() => setMenuOpen((open) => !open)}
           onMouseEnter={() => setDropdownHovered(true)}
           onMouseLeave={() => setDropdownHovered(false)}
-          className="flex shrink-0 items-center border-l border-neutral-800 px-2.5 text-neutral-500 transition-colors hover:bg-neutral-900 hover:text-neutral-300"
+          className="flex shrink-0 items-center border-l border-neutral-200 dark:border-neutral-800 px-2.5 text-neutral-500 dark:text-neutral-500 transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-900 hover:text-neutral-700 dark:hover:text-neutral-300"
         >
           <ChevronDown
             className={`h-3.5 w-3.5 transition-transform ${menuOpen ? "rotate-180" : ""}`}
@@ -117,7 +117,7 @@ export function AiChatOpenButton({
       {menuOpen && (
         <div
           role="menu"
-          className="absolute right-0 top-[calc(100%+0.375rem)] z-10 w-full overflow-hidden rounded-xl border border-neutral-800 bg-neutral-950 p-0 shadow-xl shadow-black/40"
+          className="absolute right-0 top-[calc(100%+0.375rem)] z-10 w-full overflow-hidden rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 p-0 shadow-xl shadow-black/40"
         >
           {options.map((option) => (
             <button
@@ -129,16 +129,16 @@ export function AiChatOpenButton({
                 setMenuOpen(false);
                 openChat(option.href);
               }}
-              className={`flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-neutral-900 ${
-                option.id === provider ? "bg-neutral-900/60" : ""
+              className={`flex w-full items-center gap-2 px-3 py-2 text-left transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-900 ${
+                option.id === provider ? "bg-neutral-100/60 dark:bg-neutral-900/60" : ""
               }`}
             >
-              <span className="shrink-0 text-neutral-100">{option.icon}</span>
-              <span className="min-w-0 flex-1 text-sm font-medium text-neutral-100">
+              <span className="shrink-0 text-neutral-900 dark:text-neutral-100">{option.icon}</span>
+              <span className="min-w-0 flex-1 text-sm font-medium text-neutral-900 dark:text-neutral-100">
                 {option.label}
               </span>
               <ExternalLink
-                className="h-3.5 w-3.5 shrink-0 text-neutral-500"
+                className="h-3.5 w-3.5 shrink-0 text-neutral-500 dark:text-neutral-500"
                 aria-hidden
               />
             </button>

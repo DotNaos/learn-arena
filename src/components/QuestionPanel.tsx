@@ -25,7 +25,7 @@ export function QuestionPanel({
 
   if (locked) {
     return (
-      <p className="text-center text-sm text-neutral-500">
+      <p className="text-center text-sm text-neutral-500 dark:text-neutral-500">
         Lade einen Fragensatz. Fragen werden nach dem Start freigeschaltet.
       </p>
     );
@@ -54,11 +54,11 @@ export function QuestionPanel({
         className={`space-y-3 px-2 ${hidden ? "pointer-events-none select-none" : ""}`}
       >
         {payload?.task && (
-          <p className="text-sm leading-relaxed text-neutral-400">
+          <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
             {payload.task}
           </p>
         )}
-        <h2 className="text-balance text-2xl font-semibold leading-snug tracking-tight text-neutral-100 sm:text-3xl">
+        <h2 className="text-balance text-2xl font-semibold leading-snug tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-3xl">
           {question.prompt}
         </h2>
       </motion.div>

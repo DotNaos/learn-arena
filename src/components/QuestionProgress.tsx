@@ -29,12 +29,12 @@ function ProgressLabel({
   totalQuestions,
 }: QuestionProgressBaseProps) {
   return (
-    <span className="text-xs text-neutral-500">
+    <span className="text-xs text-neutral-500 dark:text-neutral-500">
       Frage{" "}
-      <span className="font-semibold tabular-nums text-neutral-200">
+      <span className="font-semibold tabular-nums text-neutral-800 dark:text-neutral-200">
         {questionNumber}
       </span>
-      <span className="tabular-nums text-neutral-600"> / {totalQuestions}</span>
+      <span className="tabular-nums text-neutral-400 dark:text-neutral-600"> / {totalQuestions}</span>
     </span>
   );
 }
@@ -62,7 +62,7 @@ function QuestionProgressLabelRow({
         questionNumber={questionNumber}
         totalQuestions={totalQuestions}
       />
-      <span className="shrink-0 text-sm font-semibold tabular-nums text-neutral-200">
+      <span className="shrink-0 text-sm font-semibold tabular-nums text-neutral-800 dark:text-neutral-200">
         {formatTime(currentRemaining)}
       </span>
     </div>
@@ -104,7 +104,7 @@ export function QuestionProgressBlock({
         />
       </div>
       {wordCount !== undefined ? (
-        <span className="shrink-0 pb-px text-[11px] tabular-nums text-neutral-600">
+        <span className="shrink-0 pb-px text-[11px] tabular-nums text-neutral-400 dark:text-neutral-600">
           {wordCount} Woerter
         </span>
       ) : null}
@@ -154,7 +154,7 @@ export function QuestionProgressBar({
         return (
           <span
             key={index}
-            className="relative h-1.5 w-11 overflow-hidden rounded-full bg-neutral-800 sm:w-12"
+            className="relative h-1.5 w-11 overflow-hidden rounded-full bg-neutral-200 dark:bg-neutral-800 sm:w-12"
           >
             {segmentFill.widthRatio > 0 ? (
               <span

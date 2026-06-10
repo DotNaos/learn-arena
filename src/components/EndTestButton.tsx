@@ -37,7 +37,7 @@ export function EndTestButton({ onConfirm, disabled = false }: EndTestButtonProp
         enabled={!disabled && !open}
         icon={<LogOut className="h-3.5 w-3.5" />}
         labelClassName="text-xs font-medium"
-        className="inline-flex items-center gap-1.5 text-xs text-neutral-500 transition-colors hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-40"
+        className="inline-flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-500 transition-colors hover:text-neutral-800 dark:hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-40"
       />
 
       <AlertDialog open={open} onOpenChange={setOpen}>

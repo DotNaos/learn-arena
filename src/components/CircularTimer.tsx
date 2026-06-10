@@ -43,7 +43,7 @@ export function CircularTimer({
               fill="none"
               stroke="currentColor"
               strokeWidth="7"
-              className="text-neutral-800"
+              className="text-neutral-200 dark:text-neutral-800"
             />
             {expired ? (
               <circle
@@ -54,7 +54,7 @@ export function CircularTimer({
                 stroke="currentColor"
                 strokeWidth="7"
                 strokeDasharray="4 6"
-                className="text-neutral-600"
+                className="text-neutral-400 dark:text-neutral-600"
               />
             ) : (
               <circle
@@ -72,7 +72,7 @@ export function CircularTimer({
           </svg>
         </div>
         <span
-          className={`min-w-[2.65rem] text-sm tabular-nums ${expired ? "font-medium text-neutral-500" : "font-semibold text-neutral-200"}`}
+          className={`min-w-[2.65rem] text-sm tabular-nums ${expired ? "font-medium text-neutral-500 dark:text-neutral-500" : "font-semibold text-neutral-800 dark:text-neutral-200"}`}
         >
           {formatTime(remaining)}
         </span>
@@ -92,7 +92,7 @@ export function CircularTimer({
               fill="none"
               stroke="currentColor"
               strokeWidth="10"
-              className="text-neutral-800"
+              className="text-neutral-200 dark:text-neutral-800"
             />
             <circle
               cx="50"
@@ -108,7 +108,7 @@ export function CircularTimer({
           </svg>
         </div>
         <div className="min-w-0">
-          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-neutral-500">
+          <div className="flex items-center gap-1 text-[10px] uppercase tracking-wide text-neutral-500 dark:text-neutral-500">
             <Icon className="h-3 w-3" />
             <span className="truncate">{label}</span>
           </div>
@@ -131,7 +131,7 @@ export function CircularTimer({
             fill="none"
             stroke="currentColor"
             strokeWidth="8"
-            className="text-neutral-800"
+            className="text-neutral-200 dark:text-neutral-800"
           />
           <circle
             cx="50"
@@ -149,7 +149,7 @@ export function CircularTimer({
           {formatTime(remaining)}
         </div>
       </div>
-      <div className="flex items-center gap-1 text-xs text-neutral-400">
+      <div className="flex items-center gap-1 text-xs text-neutral-600 dark:text-neutral-400">
         <Icon className="h-3.5 w-3.5" />
         <span>{label}</span>
       </div>

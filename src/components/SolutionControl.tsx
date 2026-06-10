@@ -64,11 +64,11 @@ export function SolutionControl({
             allowInEditable
             resetDep={resetDep}
             ariaLabel={tooltip}
-            labelClassName="text-xs font-medium text-neutral-400"
+            labelClassName="text-xs font-medium text-neutral-600 dark:text-neutral-400"
             icon={
               <Lightbulb
                 className={`h-4 w-4 shrink-0 ${
-                  solutionVisible ? "text-indigo-300/90" : "text-neutral-400"
+                  solutionVisible ? "text-indigo-300/90" : "text-neutral-600 dark:text-neutral-400"
                 }`}
               />
             }
@@ -79,7 +79,7 @@ export function SolutionControl({
                 {remaining}
               </span>
             }
-            className="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-neutral-500 transition-colors hover:bg-neutral-800/80 hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full px-3 py-2 text-neutral-500 dark:text-neutral-500 transition-colors hover:bg-neutral-200/80 dark:hover:bg-neutral-800/80 hover:text-neutral-800 dark:hover:text-neutral-200 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
           />
         }
       />
