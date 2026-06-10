@@ -32,6 +32,7 @@ Ausgabeformat nach dem Fragensatz:
    - Den JSON-Codeblock komplett kopieren.
    - Dann ${appUrl} oeffnen.
    - Dort den kopierten JSON einfuegen und den Test starten.
+   - Hinweis: Nach dem Test fuege ich meine Antworten hier wieder ein, damit du sie bewertest.
 3. Nach dieser Anleitung nichts mehr schreiben.
 
 Das JSON muss diesem Schema entsprechen:
@@ -44,7 +45,24 @@ Das JSON muss diesem Schema entsprechen:
     {
       "title": "string",
       "prompt": "string (die eigentliche Frage)",
+      "type": "open",
       "solution": ["string", "string"]
+    },
+    {
+      "title": "string",
+      "prompt": "string (die Frage)",
+      "type": "single",
+      "choices": ["Option A", "Option B", "Option C", "Option D"],
+      "correct": [1],
+      "solution": ["string (kurze Begruendung)"]
+    },
+    {
+      "title": "string",
+      "prompt": "string (die Frage)",
+      "type": "multiple",
+      "choices": ["Option A", "Option B", "Option C", "Option D"],
+      "correct": [0, 2],
+      "solution": ["string (kurze Begruendung)"]
     }
   ],
   "settings": {
@@ -60,7 +78,11 @@ Das JSON muss diesem Schema entsprechen:
 Regeln fuer das JSON:
 - "questions" muss ein nicht-leeres Array sein (typisch 3-5 Fragen, je nach Thema).
 - Jede Frage braucht "prompt".
-- "solution" ist immer string[]; jeder Eintrag ist ein Absatz. Keine \\n in Strings.
+- "type" ist "open" (Freitext), "single" (genau eine richtige Option) oder "multiple" (eine oder mehrere richtige Optionen). Fehlt "type", gilt "open".
+- Bei "single"/"multiple": "choices" ist ein Array mit 3-5 kurzen Optionen. "correct" ist ein Array mit den 0-basierten Indizes der richtigen Optionen (z.B. [1] oder [0, 2]).
+- "open"-Fragen haben KEINE "choices" und KEIN "correct".
+- Du darfst offene und Choice-Fragen im selben Test mischen — waehle den Typ passend zum Lernziel.
+- "solution" ist immer string[]; jeder Eintrag ist ein Absatz (kurze Begruendung/Musterloesung). Keine \\n in Strings.
 - "writeSeconds" muss groesser als 0 sein.
 - "readSeconds" darf 0 oder groesser sein.
 - "solutionSeconds": Standard ${SOLUTION_SECONDS_DEFAULT}, erlaubt ${SOLUTION_SECONDS_MIN}-${SOLUTION_SECONDS_MAX} (wie lange die Loesung angezeigt wird).

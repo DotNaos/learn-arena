@@ -1,4 +1,12 @@
-import { Braces, Check, Clipboard, Download, FileUp, RotateCcw } from "lucide-react";
+import {
+  Braces,
+  Check,
+  Clipboard,
+  Download,
+  ExternalLink,
+  FileUp,
+  RotateCcw,
+} from "lucide-react";
 import {
   CHORD_META_1,
   CHORD_META_2,
@@ -6,6 +14,7 @@ import {
   CHORD_META_4,
 } from "../hooks/keyboardChords";
 import type { Payload } from "../domain/payload";
+import { ChatGptIcon } from "./AiChatLink";
 import { ShortcutActionButton } from "./ShortcutActionButton";
 
 type DoneStepProps = {
@@ -29,14 +38,32 @@ export function DoneStep({
     <div className="flex h-dvh flex-col bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
       <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-6 sm:px-6">
         <div className="w-full max-w-lg text-center">
-          <div className="mb-10 sm:mb-12">
+          <div className="mb-8 sm:mb-10">
             <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
               {payload.title}
             </h1>
             <p className="mt-3 text-xs leading-relaxed text-neutral-500 dark:text-neutral-500 sm:text-sm">
-              Alle {payload.questions.length} Fragen abgeschlossen. Deine
-              Antworten sind bereit zum Export.
+              Alle {payload.questions.length} Fragen abgeschlossen. Lass deine
+              Antworten jetzt von der KI bewerten.
             </p>
+          </div>
+
+          <div className="mb-6 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100/60 dark:bg-neutral-900/40 p-4 text-left">
+            <ol className="space-y-1.5 text-xs leading-relaxed text-neutral-600 dark:text-neutral-400 sm:text-sm">
+              <li>
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                  1.
+                </span>{" "}
+                Antworten kopieren.
+              </li>
+              <li>
+                <span className="font-semibold text-neutral-900 dark:text-neutral-100">
+                  2.
+                </span>{" "}
+                Zurueck in deinen ChatGPT-Chat einfuegen — die KI bewertet deine
+                Antworten.
+              </li>
+            </ol>
           </div>
 
           <div className="flex w-full flex-col gap-3 text-left">
@@ -51,6 +78,17 @@ export function DoneStep({
               chipVariant="light"
               className="flex w-full items-center gap-2 rounded-xl bg-neutral-900 dark:bg-neutral-100 px-4 py-3.5 text-sm font-medium text-neutral-50 dark:text-neutral-950 transition-colors hover:bg-neutral-700 dark:hover:bg-neutral-300"
             />
+
+            <a
+              href="https://chatgpt.com/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 transition-colors hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+            >
+              <ChatGptIcon />
+              ChatGPT oeffnen
+              <ExternalLink className="h-3.5 w-3.5 text-neutral-400 dark:text-neutral-600" />
+            </a>
 
             <div className="flex items-center gap-2 py-0.5">
               <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />

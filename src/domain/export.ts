@@ -1,4 +1,5 @@
-import type { Payload, Settings } from "./payload";
+import { choiceLetter, getChoiceAnswerLines, isChoiceQuestion } from "./choice";
+import type { Payload, Question, Settings } from "./payload";
 
 export function serializePayload(payload: Payload): string {
   return JSON.stringify(
@@ -40,12 +41,10 @@ type ExportInput = {
 export function buildExportText(input: ExportInput): string {
   const {
     payload,
-    settings,
     started,
     finished,
     currentIndex,
     answers,
-    solutionRequests,
     currentAnswer,
   } = input;
 
@@ -54,31 +53,65 @@ export function buildExportText(input: ExportInput): string {
     resolvedAnswers[currentIndex] = currentAnswer;
   }
 
-  const now = new Date().toLocaleString("de-DE");
   const lines = [
-    payload?.title || "Recall Benchmark",
-    `Zeitpunkt: ${now}`,
-    `Modus: ${payload?.mode || "-"}`,
-    `Status: ${finished ? "beendet" : started ? "laufend" : "nicht gestartet"}`,
+    "Bitte bewerte meine Antworten zu diesem Recall-Test.",
+    "Gib pro Frage kurzes Feedback (richtig / teilweise / falsch und was fehlt)",
+    "und am Ende eine Gesamteinschaetzung mit ein paar Lerntipps.",
+    "",
+    `Test: ${payload?.title || "Recall Benchmark"}`,
     "",
   ];
 
   if (payload) {
     payload.questions.forEach((question, index) => {
       lines.push(`${index + 1}. ${question.title}`);
-      lines.push(question.prompt);
+      lines.push(`Frage: ${question.prompt}`);
+
+      if (isChoiceQuestion(question)) {
+        lines.push(
+          question.type === "multiple"
+            ? "Typ: Multiple Choice (mehrere richtig)"
+            : "Typ: Single Choice (eine richtig)",
+        );
+        lines.push("Optionen:");
+        question.choices.forEach((choice, choiceIndex) => {
+          lines.push(`  ${choiceLetter(choiceIndex)}) ${choice}`);
+        });
+      }
+
       lines.push("");
-      lines.push("Antwort:");
-      lines.push((resolvedAnswers[index] || "").trim());
-      lines.push("");
-      lines.push(
-        `Loesungs-Reveals verwendet: ${solutionRequests[index] || 0}/${settings.maxSolutionRequestsPerQuestion}`,
-      );
+      lines.push(`Meine Antwort: ${getDisplayAnswer(question, resolvedAnswers[index])}`);
+
+      const reference = getReferenceSolution(question);
+      if (reference) {
+        lines.push(`Musterloesung: ${reference}`);
+      }
+
       lines.push("");
     });
   }
 
   return lines.join("\n");
+}
+
+function getDisplayAnswer(question: Question, raw: string | undefined): string {
+  if (isChoiceQuestion(question)) {
+    const lines = getChoiceAnswerLines(question, raw || "");
+    return lines.length > 0 ? lines.join(", ") : "(keine Auswahl)";
+  }
+
+  const text = (raw || "").trim();
+  return text || "(keine Antwort)";
+}
+
+function getReferenceSolution(question: Question): string {
+  if (isChoiceQuestion(question) && question.correctChoices.length > 0) {
+    return question.correctChoices
+      .map((index) => `${choiceLetter(index)}) ${question.choices[index]}`)
+      .join(", ");
+  }
+
+  return question.solution.join(" ").trim();
 }
 
 export function buildExportFromSession(

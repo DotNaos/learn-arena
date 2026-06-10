@@ -27,6 +27,7 @@ import {
   ChatGptIcon,
   ClaudeIcon,
 } from "./AiChatLink";
+import { HowToDialog } from "./HowToDialog";
 import { ShortcutActionButton } from "./ShortcutActionButton";
 
 type SetupStepProps = {
@@ -154,9 +155,12 @@ export function SetupStep({
     <div className="flex h-dvh flex-col overflow-hidden bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
       <main className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden px-4 py-6 sm:px-6">
         <div className="w-full max-w-sm space-y-8">
-          <h1 className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">
-            Learn Arena
-          </h1>
+          <div className="flex flex-col items-center gap-3">
+            <h1 className="text-center text-4xl font-semibold tracking-tight sm:text-5xl">
+              Learn Arena
+            </h1>
+            <HowToDialog />
+          </div>
 
           <input
             ref={fileInputRef}

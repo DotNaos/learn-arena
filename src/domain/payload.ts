@@ -22,9 +22,14 @@ export type Settings = {
   hideQuestionAfterRead: boolean;
 };
 
+export type QuestionType = "open" | "single" | "multiple";
+
 export type Question = {
   title: string;
   prompt: string;
+  type: QuestionType;
+  choices: string[];
+  correctChoices: number[];
   solution: string[];
 };
 
@@ -41,6 +46,12 @@ type RawQuestion = string | {
   title?: string;
   prompt?: string;
   question?: string;
+  type?: string;
+  choices?: unknown;
+  options?: unknown;
+  correct?: unknown;
+  correctChoices?: unknown;
+  answer?: unknown;
   solution?: string | string[];
 };
 
@@ -64,11 +75,29 @@ export function formatSolutionParts(content: string | string[]): string[] {
   return normalizeText(content).split("\n").filter(Boolean);
 }
 
+function normalizeChoices(raw: unknown): string[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map(normalizeText).map((value) => value.trim()).filter(Boolean);
+}
+
+function normalizeCorrectChoices(raw: unknown, choiceCount: number): number[] {
+  const list = Array.isArray(raw) ? raw : raw === undefined ? [] : [raw];
+  const indices = list
+    .map((value) => Number(value))
+    .filter(
+      (value) => Number.isInteger(value) && value >= 0 && value < choiceCount,
+    );
+  return Array.from(new Set(indices)).sort((a, b) => a - b);
+}
+
 function normalizeQuestion(item: RawQuestion, index: number): Question {
   if (typeof item === "string") {
     return {
       title: `Frage ${index + 1}`,
       prompt: item,
+      type: "open",
+      choices: [],
+      correctChoices: [],
       solution: [],
     };
   }
@@ -78,9 +107,27 @@ function normalizeQuestion(item: RawQuestion, index: number): Question {
     ? []
     : formatSolutionParts(rawSolution);
 
+  const choices = normalizeChoices(item.choices ?? item.options);
+  const hasChoices = choices.length > 0;
+  const requestedType = String(item.type ?? "").toLowerCase();
+  const type: QuestionType = !hasChoices
+    ? "open"
+    : requestedType === "multiple"
+      ? "multiple"
+      : "single";
+  const correctChoices = hasChoices
+    ? normalizeCorrectChoices(
+        item.correct ?? item.correctChoices ?? item.answer,
+        choices.length,
+      )
+    : [];
+
   return {
     title: item.title || `Frage ${index + 1}`,
     prompt: item.prompt || item.question || "",
+    type,
+    choices,
+    correctChoices,
     solution,
   };
 }

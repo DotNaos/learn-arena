@@ -1,11 +1,15 @@
 import { ArrowRight } from "lucide-react";
+import type { Question } from "../domain/payload";
+import { isChoiceQuestion } from "../domain/choice";
 import { countWords, getAnswerPlaceholder } from "../domain/session";
 import { AnswerEditor } from "./AnswerEditor";
+import { ChoiceList } from "./ChoiceList";
 import { ShortcutActionButton } from "./ShortcutActionButton";
 import { QuestionProgressBlock } from "./QuestionProgress";
 import { SolutionControl } from "./SolutionControl";
 
 type AnswerPanelProps = {
+  question?: Question | null;
   value: string;
   disabled: boolean;
   roundEnded?: boolean;
@@ -29,6 +33,7 @@ type AnswerPanelProps = {
 };
 
 export function AnswerPanel({
+  question,
   value,
   disabled,
   roundEnded = false,
@@ -51,13 +56,14 @@ export function AnswerPanel({
   totalQuestions = 0,
 }: AnswerPanelProps) {
   const hasAnswer = value.trim().length > 0;
+  const choiceMode = isChoiceQuestion(question);
   const placeholder = getAnswerPlaceholder({ roundEnded, readRemaining });
   const revealCount = solutionReveals ?? 0;
   const showSolutionControl =
     Boolean(onSolutionRequest) && solutionAllowed;
   const showToolbar = onNext || showSolutionControl;
   const showProgress = totalQuestions > 0 && questionNumber !== undefined;
-  const wordCount = countWords(value);
+  const wordCount = choiceMode ? undefined : countWords(value);
 
   return (
     <div className="w-full">
@@ -80,13 +86,23 @@ export function AnswerPanel({
         </div>
       )}
       <div className="w-full overflow-hidden rounded-3xl border border-neutral-200/90 dark:border-neutral-800/90 bg-neutral-100/50 dark:bg-neutral-900/50 shadow-sm">
-        <AnswerEditor
-          value={value}
-          placeholder={placeholder}
-          disabled={disabled}
-          questionNumber={questionNumber}
-          onChange={onChange}
-        />
+        {choiceMode && question ? (
+          <ChoiceList
+            question={question}
+            value={value}
+            disabled={disabled}
+            revealed={roundEnded || solutionVisible}
+            onChange={onChange}
+          />
+        ) : (
+          <AnswerEditor
+            value={value}
+            placeholder={placeholder}
+            disabled={disabled}
+            questionNumber={questionNumber}
+            onChange={onChange}
+          />
+        )}
 
         {showToolbar && (
           <div className="flex items-center justify-between gap-3 px-3 pb-3">

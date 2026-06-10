@@ -138,6 +138,7 @@ export function ActiveStep({
               className="flex w-full flex-col gap-3"
             >
             <AnswerPanel
+              question={question}
               value={currentAnswer}
               disabled={answerDisabled}
               roundEnded={roundEnded}

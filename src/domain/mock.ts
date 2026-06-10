@@ -8,17 +8,24 @@ export const MOCK_PAYLOAD_JSON = JSON.stringify({
     {
       title: "Frage 1",
       prompt: "Was ist die Hauptstadt von Frankreich?",
+      type: "open",
       solution: ["Paris", "Hauptstadt an der Seine."],
     },
     {
       title: "Frage 2",
-      prompt: "Nenne die drei Zustandsformen von Wasser.",
-      solution: ["fest (Eis)", "fluessig (Wasser)", "gasfoermig (Dampf)"],
+      prompt: "Welche Stadt ist die Hauptstadt von Italien?",
+      type: "single",
+      choices: ["Mailand", "Rom", "Neapel", "Turin"],
+      correct: [1],
+      solution: ["Rom ist seit 1871 die Hauptstadt Italiens."],
     },
     {
       title: "Frage 3",
-      prompt: "Was bedeutet HTML?",
-      solution: ["HyperText Markup Language"],
+      prompt: "Welche davon sind Zustandsformen von Wasser?",
+      type: "multiple",
+      choices: ["Fest (Eis)", "Plasma", "Fluessig", "Gasfoermig (Dampf)"],
+      correct: [0, 2, 3],
+      solution: ["Wasser kommt fest, fluessig und gasfoermig vor."],
     },
   ],
   settings: {
