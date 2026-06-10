@@ -83,6 +83,8 @@ Regeln fuer das JSON:
 - "open"-Fragen haben KEINE "choices" und KEIN "correct".
 - Du darfst offene und Choice-Fragen im selben Test mischen — waehle den Typ passend zum Lernziel.
 - "solution" ist immer string[]; jeder Eintrag ist ein Absatz (kurze Begruendung/Musterloesung). Keine \\n in Strings.
+- Mathematik/Formeln: schreibe sie als LaTeX (KaTeX) — inline in $...$, abgesetzt in $$...$$. Das gilt fuer "prompt", "choices" UND "solution". Beispiel: "Berechne $\\\\int 2x\\\\cos(x^2+1)\\\\,dx$ mit Substitution."
+- WICHTIG: Da es JSON ist, muessen LaTeX-Backslashes im String verdoppelt werden (also \\\\int, \\\\frac, \\\\cdot, \\\\sqrt statt \\int, \\frac, ...). Sonst ist das JSON ungueltig.
 - "writeSeconds" muss groesser als 0 sein.
 - "readSeconds" darf 0 oder groesser sein.
 - "solutionSeconds": Standard ${SOLUTION_SECONDS_DEFAULT}, erlaubt ${SOLUTION_SECONDS_MIN}-${SOLUTION_SECONDS_MAX} (wie lange die Loesung angezeigt wird).

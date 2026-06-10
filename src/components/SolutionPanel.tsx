@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Lightbulb } from "lucide-react";
 import { getMotionTransition } from "../ui/motionPresets";
+import { MathText } from "./MathText";
 import { SolutionRevealFrame } from "./SolutionRevealFrame";
 
 type SolutionPanelProps = {
@@ -74,7 +75,7 @@ export function SolutionPanel({
                     index === 0 ? "font-semibold text-white" : undefined
                   }
                 >
-                  {part}
+                  <MathText>{part}</MathText>
                 </p>
               ))}
             </div>

@@ -23,7 +23,7 @@ button:not(:disabled) {
 
 .answer-composer-editor .ProseMirror {
   min-height: calc(var(--answer-editor-line-height) * 2);
-  color: rgb(245 245 245);
+  color: rgb(23 23 23);
   font-size: 0.875rem;
   line-height: 1.625;
 }
@@ -59,24 +59,50 @@ button:not(:disabled) {
 .answer-composer-editor .ProseMirror h1,
 .answer-composer-editor .ProseMirror h2,
 .answer-composer-editor .ProseMirror h3 {
-  color: rgb(245 245 245);
+  color: rgb(23 23 23);
 }
 
 .answer-composer-editor .ProseMirror blockquote {
+  border-left-color: rgb(212 212 212);
+  color: rgb(82 82 82);
+}
+
+.answer-composer-editor .ProseMirror code {
+  background-color: rgb(245 245 245);
+  color: rgb(38 38 38);
+}
+
+.answer-composer-editor .ProseMirror pre {
+  background-color: rgb(245 245 245);
+}
+
+.answer-composer-editor .ProseMirror .is-empty::before {
+  color: rgb(163 163 163);
+}
+
+/* Dark-theme overrides for the answer editor (defaults above are light). */
+.dark .answer-composer-editor .ProseMirror,
+.dark .answer-composer-editor .ProseMirror h1,
+.dark .answer-composer-editor .ProseMirror h2,
+.dark .answer-composer-editor .ProseMirror h3 {
+  color: rgb(245 245 245);
+}
+
+.dark .answer-composer-editor .ProseMirror blockquote {
   border-left-color: rgb(64 64 64);
   color: rgb(163 163 163);
 }
 
-.answer-composer-editor .ProseMirror code {
+.dark .answer-composer-editor .ProseMirror code {
   background-color: rgb(38 38 38);
   color: rgb(212 212 212);
 }
 
-.answer-composer-editor .ProseMirror pre {
+.dark .answer-composer-editor .ProseMirror pre {
   background-color: rgb(23 23 23);
 }
 
-.answer-composer-editor .ProseMirror .is-empty::before {
+.dark .answer-composer-editor .ProseMirror .is-empty::before {
   color: rgb(115 115 115);
 }
 

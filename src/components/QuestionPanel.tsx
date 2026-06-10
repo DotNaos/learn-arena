@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from "motion/react";
 import type { Payload, Question } from "../domain/payload";
 import { getMotionTransition } from "../ui/motionPresets";
+import { MathText } from "./MathText";
 
 type QuestionPanelProps = {
   payload: Payload | null;
@@ -55,11 +56,11 @@ export function QuestionPanel({
       >
         {payload?.task && (
           <p className="text-sm leading-relaxed text-neutral-600 dark:text-neutral-400">
-            {payload.task}
+            <MathText>{payload.task}</MathText>
           </p>
         )}
         <h2 className="text-balance text-2xl font-semibold leading-snug tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-3xl">
-          {question.prompt}
+          <MathText>{question.prompt}</MathText>
         </h2>
       </motion.div>
     </motion.div>

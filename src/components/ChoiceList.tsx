@@ -7,6 +7,7 @@ import {
   parseChoiceSelection,
   toggleChoiceSelection,
 } from "../domain/choice";
+import { MathText } from "./MathText";
 
 type ChoiceListProps = {
   question: Question;
@@ -107,7 +108,9 @@ export function ChoiceList({
                 choiceLetter(index)
               )}
             </span>
-            <span className="min-w-0 flex-1 break-words">{choice}</span>
+            <span className="min-w-0 flex-1 break-words">
+              <MathText>{choice}</MathText>
+            </span>
             {showCorrect && (
               <Check className="h-4 w-4 shrink-0 text-emerald-500" strokeWidth={2.5} />
             )}
