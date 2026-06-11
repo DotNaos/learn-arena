@@ -57,6 +57,7 @@ export function buildExportText(input: ExportInput): string {
     "Bitte bewerte meine Antworten zu diesem Recall-Test.",
     "Gib pro Frage kurzes Feedback (richtig / teilweise / falsch und was fehlt)",
     "und am Ende eine Gesamteinschaetzung mit ein paar Lerntipps.",
+    "Formeln in deiner Antwort bitte mit \\(...\\) und \\[...\\] schreiben, nicht mit Dollarzeichen.",
     "",
     `Test: ${payload?.title || "Recall Benchmark"}`,
     "",
@@ -111,6 +112,7 @@ export function buildPlanGradingExport(
     `Bitte bewerte meine Antworten zu diesem Lernplan: ${planTitle}.`,
     "Gib pro Test und Frage kurzes Feedback (richtig / teilweise / falsch und",
     "was fehlt) und am Ende eine Gesamteinschaetzung mit Lerntipps pro Test.",
+    "Formeln in deiner Antwort bitte mit \\(...\\) und \\[...\\] schreiben, nicht mit Dollarzeichen.",
     "",
   ];
 
