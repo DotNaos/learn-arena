@@ -23,9 +23,9 @@ export const MOCK_PAYLOAD_JSON = JSON.stringify({
       title: "Frage 3",
       prompt: "Welche davon sind Zustandsformen von Wasser?",
       type: "multiple",
-      choices: ["Fest (Eis)", "Plasma", "Fluessig", "Gasfoermig (Dampf)"],
+      choices: ["Fest (Eis)", "Plasma", "Flüssig", "Gasförmig (Dampf)"],
       correct: [0, 2, 3],
-      solution: ["Wasser kommt fest, fluessig und gasfoermig vor."],
+      solution: ["Wasser kommt fest, flüssig und gasförmig vor."],
     },
   ],
   settings: {
@@ -68,9 +68,7 @@ export function createMockInitialSession(startActive: boolean): SessionState {
     writeRemaining: payload.settings.writeSeconds,
     answers: Array(payload.questions.length).fill(""),
     solutionRequests: Array(payload.questions.length).fill(0),
-    message: startActive
-      ? "Mock-Modus: Test laeuft. Naechste Frage springt sofort weiter."
-      : "Mock-Modus aktiv. Payload ist geladen.",
+    message: startActive ? "mock.runningInfo" : "mock.active",
   };
 
   if (!startActive) return base;
@@ -78,6 +76,6 @@ export function createMockInitialSession(startActive: boolean): SessionState {
   return {
     ...base,
     started: true,
-    message: "Mock-Modus: Frage 1 gestartet.",
+    message: "mock.running",
   };
 }

@@ -12,7 +12,7 @@ import {
 import type { WizardStep } from "./wizard";
 
 export type ShortcutEntry = {
-  label: string;
+  labelKey: string;
   keys: string;
 };
 
@@ -21,60 +21,60 @@ export function getShortcutsForStep(step: WizardStep): ShortcutEntry[] {
     case "setup":
       return [
         {
-          label: "In ChatGPT öffnen",
+          labelKey: "keyboard.openChat",
           keys: formatChordLabel(CHORD_META_DOT),
         },
         {
-          label: "Prompt kopieren",
+          labelKey: "keyboard.copyPrompt",
           keys: formatChordLabel(CHORD_META_COMMA),
         },
         {
-          label: "Einfügen",
+          labelKey: "keyboard.insert",
           keys: formatChordLabel(CHORD_META_ENTER),
         },
       ];
     case "ready":
       return [
         {
-          label: "Test starten",
+          labelKey: "keyboard.start",
           keys: formatChordLabel(CHORD_META_ENTER),
         },
       ];
     case "active":
       return [
         {
-          label: "Naechste Frage",
+          labelKey: "keyboard.next",
           keys: formatChordLabel(CHORD_META_ENTER),
         },
         {
-          label: "Loesung",
+          labelKey: "keyboard.solution",
           keys: formatChordLabel(CHORD_META_DOT),
         },
         {
-          label: "Test beenden",
+          labelKey: "keyboard.endTest",
           keys: formatChordLabel(CHORD_META_SLASH),
         },
       ];
     case "done":
       return [
         {
-          label: "Antworten kopieren",
+          labelKey: "keyboard.copyAnswers",
           keys: formatChordLabel(CHORD_META_ENTER),
         },
         {
-          label: "Antworten als Datei",
+          labelKey: "keyboard.downloadAnswers",
           keys: formatChordLabel(CHORD_META_1),
         },
         {
-          label: "Fragensatz herunterladen",
+          labelKey: "keyboard.downloadPayload",
           keys: formatChordLabel(CHORD_META_2),
         },
         {
-          label: "Gleichen Test wiederholen",
+          labelKey: "keyboard.retry",
           keys: formatChordLabel(CHORD_META_3),
         },
         {
-          label: "Neuen Fragensatz laden",
+          labelKey: "keyboard.loadNew",
           keys: formatChordLabel(CHORD_META_4),
         },
       ];

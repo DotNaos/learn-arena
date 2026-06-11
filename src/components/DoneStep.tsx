@@ -18,6 +18,7 @@ import {
 import type { Payload } from "../domain/payload";
 import { ChatGptIcon } from "./AiChatLink";
 import { ShortcutActionButton } from "./ShortcutActionButton";
+import { useI18n } from "../i18n";
 
 type DoneStepProps = {
   payload: Payload;
@@ -44,6 +45,7 @@ export function DoneStep({
   onNextInPlan,
   onBackToPlan,
 }: DoneStepProps) {
+  const { t } = useI18n();
   return (
     <div className="flex h-dvh flex-col bg-neutral-50 dark:bg-neutral-950 text-neutral-900 dark:text-neutral-100">
       <main className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-6 sm:px-6">
@@ -54,8 +56,8 @@ export function DoneStep({
             </h1>
             <p className="mt-3 text-xs leading-relaxed text-neutral-500 dark:text-neutral-500 sm:text-sm">
               {planActive
-                ? "Test abgeschlossen. Mach im Lernplan weiter — die Gesamt-Auswertung holst du dir am Ende im Plan."
-                : `Alle ${payload.questions.length} Fragen abgeschlossen. Lass deine Antworten jetzt von der KI bewerten.`}
+                ? t("done.finishedPlan")
+                : t("done.finishedSingle", { count: payload.questions.length })}
             </p>
           </div>
 
@@ -63,7 +65,7 @@ export function DoneStep({
             <div className="mb-6 flex w-full flex-col gap-2 text-left">
               {hasNextInPlan && onNextInPlan && (
                 <ShortcutActionButton
-                  label="Naechster Test"
+                  label={t("done.nextTest")}
                   onAction={onNextInPlan}
                   icon={<ArrowRight className="h-4 w-4" />}
                   chipVariant="light"
@@ -77,7 +79,7 @@ export function DoneStep({
                   className="inline-flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 transition-colors hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-900"
                 >
                   <Layers className="h-4 w-4" />
-                  Zurueck zum Lernplan
+                  {t("done.toPlan")}
                 </button>
               )}
             </div>
@@ -88,14 +90,13 @@ export function DoneStep({
                   <span className="font-semibold text-neutral-900 dark:text-neutral-100">
                     1.
                   </span>{" "}
-                  Antworten kopieren.
+                  {t("done.stepCopy")}
                 </li>
                 <li>
                   <span className="font-semibold text-neutral-900 dark:text-neutral-100">
                     2.
                   </span>{" "}
-                  Zurueck in deinen ChatGPT-Chat einfuegen — die KI bewertet deine
-                  Antworten.
+                  {t("done.stepPaste")}
                 </li>
               </ol>
             </div>
@@ -105,11 +106,11 @@ export function DoneStep({
             {!planActive && (
               <>
                 <ShortcutActionButton
-                  label="Antworten kopieren"
+                  label={t("done.copyAnswers")}
                   onAction={onCopy}
                   icon={<Clipboard className="h-4 w-4" />}
                   feedback={{
-                    label: "Kopiert",
+                    label: t("common.copied"),
                     icon: <Check className="h-4 w-4" strokeWidth={2.5} />,
                   }}
                   chipVariant="light"
@@ -123,7 +124,7 @@ export function DoneStep({
                   className="flex w-full items-center justify-center gap-2 rounded-xl border border-neutral-200 dark:border-neutral-800 px-4 py-3 text-sm font-medium text-neutral-700 dark:text-neutral-300 transition-colors hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-900"
                 >
                   <ChatGptIcon />
-                  ChatGPT oeffnen
+                  {t("done.openChatGpt")}
                   <ExternalLink className="h-3.5 w-3.5 text-neutral-400 dark:text-neutral-600" />
                 </a>
               </>
@@ -131,18 +132,18 @@ export function DoneStep({
 
             <div className="flex items-center gap-2 py-0.5">
               <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-              <span className="text-[11px] text-neutral-400 dark:text-neutral-600">Optionen</span>
+              <span className="text-[11px] text-neutral-400 dark:text-neutral-600">{t("done.options")}</span>
               <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
             </div>
 
             <div className="flex flex-col gap-2">
               {planActive && (
                 <ShortcutActionButton
-                  label="Antworten dieses Tests kopieren"
+                  label={t("done.copyThisTest")}
                   onAction={onCopy}
                   icon={<Clipboard className="h-3.5 w-3.5" />}
                   feedback={{
-                    label: "Kopiert",
+                    label: t("common.copied"),
                     icon: <Check className="h-3.5 w-3.5" strokeWidth={2.5} />,
                   }}
                   labelClassName="text-xs font-medium text-neutral-700 dark:text-neutral-300"
@@ -150,7 +151,7 @@ export function DoneStep({
                 />
               )}
               <ShortcutActionButton
-                label="Antworten als Datei"
+                label={t("done.downloadAnswers")}
                 onAction={onDownloadAnswers}
                 chord={CHORD_META_1}
                 icon={<Download className="h-3.5 w-3.5" />}
@@ -158,7 +159,7 @@ export function DoneStep({
                 className="inline-flex w-full items-center gap-2 rounded-lg bg-neutral-100 dark:bg-neutral-900 px-3 py-2.5 text-xs text-neutral-700 dark:text-neutral-300 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
               />
               <ShortcutActionButton
-                label="Fragensatz herunterladen"
+                label={t("done.downloadPayload")}
                 onAction={onDownloadPayload}
                 chord={CHORD_META_2}
                 icon={<Braces className="h-3.5 w-3.5" />}
@@ -170,7 +171,7 @@ export function DoneStep({
 
           <div className="mt-6 flex flex-col gap-2 text-left">
             <ShortcutActionButton
-              label="Gleichen Test wiederholen"
+              label={t("done.retry")}
               onAction={onRetry}
               chord={CHORD_META_3}
               icon={<RotateCcw className="h-4 w-4 shrink-0" />}
@@ -178,7 +179,7 @@ export function DoneStep({
               className="inline-flex w-full items-center gap-2 rounded-xl border border-neutral-200 dark:border-neutral-800 px-3 py-3 text-sm text-neutral-600 dark:text-neutral-400 transition-colors hover:border-neutral-300 dark:hover:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-900 hover:text-neutral-800 dark:hover:text-neutral-200"
             />
             <ShortcutActionButton
-              label="Neuen Fragensatz laden"
+              label={t("keyboard.loadNew")}
               onAction={onReset}
               chord={CHORD_META_4}
               icon={<FileUp className="h-4 w-4 shrink-0" />}

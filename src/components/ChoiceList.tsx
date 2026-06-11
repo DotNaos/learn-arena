@@ -8,6 +8,7 @@ import {
   toggleChoiceSelection,
 } from "../domain/choice";
 import { MathText } from "./MathText";
+import { useI18n } from "../i18n";
 
 type ChoiceListProps = {
   question: Question;
@@ -24,6 +25,7 @@ export function ChoiceList({
   revealed,
   onChange,
 }: ChoiceListProps) {
+  const { t } = useI18n();
   const multiple = question.type === "multiple";
   const selected = parseChoiceSelection(value);
   const correct = question.correctChoices;
@@ -47,7 +49,11 @@ export function ChoiceList({
       const digit = Number(event.key);
       if (Number.isInteger(digit) && digit >= 1 && digit <= optionCount) {
         event.preventDefault();
-        const next = toggleChoiceSelection(selected, digit - 1, multiple);
+        const next = toggleChoiceSelection(
+          parseChoiceSelection(value),
+          digit - 1,
+          multiple,
+        );
         onChange(formatChoiceSelection(next));
       }
     };
@@ -62,9 +68,9 @@ export function ChoiceList({
   };
 
   return (
-    <div className="flex flex-col gap-2 p-3 sm:p-4">
+    <div className="choice-list flex flex-col gap-2 p-3 sm:p-4">
       <p className="px-1 text-[11px] font-medium uppercase tracking-wide text-neutral-400 dark:text-neutral-600">
-        {multiple ? "Mehrere Antworten moeglich" : "Eine Antwort waehlen"}
+        {multiple ? t("answer.multiple") : t("answer.chooseOne")}
       </p>
       {question.choices.map((choice, index) => {
         const isSelected = selected.includes(index);
@@ -95,7 +101,7 @@ export function ChoiceList({
             disabled={disabled}
             onClick={() => select(index)}
             aria-pressed={isSelected}
-            className={`group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed sm:text-base ${stateClass}`}
+            className={`choice-list-option group flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left text-sm transition-colors disabled:cursor-not-allowed sm:text-base ${stateClass}`}
           >
             <span
               className={`flex h-6 w-6 shrink-0 items-center justify-center border text-[11px] font-semibold ${

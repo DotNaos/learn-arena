@@ -42,6 +42,9 @@ import {
 import { getWizardStep } from "./domain/wizard";
 import { KeyboardShortcutsHelp } from "./components/KeyboardShortcutsHelp";
 import { ThemeToggle } from "./components/ThemeToggle";
+import { GitHubAccessDialog } from "./components/GitHubAccessDialog";
+import { LanguageToggle } from "./components/LanguageToggle";
+import { useI18n } from "./i18n";
 
 type PlanContext = { planId: string; index: number };
 
@@ -61,7 +64,7 @@ function finishRound(prev: SessionState): SessionState {
       solutionRemaining: 0,
       solutionTitle: "",
       solutionParts: [],
-      message: "Alle Fragen abgeschlossen. Export ist bereit.",
+      message: "status.roundDone",
     };
   }
 
@@ -94,6 +97,7 @@ function createSessionFromPayload(
 }
 
 export default function App() {
+  const { t } = useI18n();
   const [session, setSession] = useState(() =>
     mockConfig.enabled
       ? createMockInitialSession(mockConfig.startActive)
@@ -108,6 +112,17 @@ export default function App() {
   const recordedRef = useRef(false);
 
   const step = getWizardStep(session);
+  const translateMessage = useCallback(
+    (message: string) => {
+      if (message.startsWith("status.questionStarted:")) {
+        return t("status.questionStarted", {
+          number: message.split(":")[1] ?? 1,
+        });
+      }
+      return message.includes(".") ? t(message) : message;
+    },
+    [t],
+  );
 
   useEffect(() => {
     saveLibrary(library);
@@ -170,7 +185,7 @@ export default function App() {
         result.payload,
         id,
         null,
-        "Fragensatz geladen. Pruefe die Uebersicht und starte den Test.",
+        "status.loadedReview",
       );
     },
     [library, beginTest],
@@ -180,7 +195,7 @@ export default function App() {
     (id: string) => {
       const test = library.tests[id];
       if (!test) return;
-      beginTest(test.payload, id, null, "Fragensatz geladen. Starte den Test.");
+      beginTest(test.payload, id, null, "status.loaded");
     },
     [library, beginTest],
   );
@@ -197,7 +212,12 @@ export default function App() {
       const testId = plan?.testIds[index];
       const test = testId ? library.tests[testId] : undefined;
       if (!plan || !testId || !test) return;
-      beginTest(test.payload, testId, { planId: activePlanId, index }, "Test gestartet.");
+      beginTest(
+        test.payload,
+        testId,
+        { planId: activePlanId, index },
+        "status.questionStarted:1",
+      );
     },
     [activePlanId, library, beginTest],
   );
@@ -227,7 +247,7 @@ export default function App() {
       test.payload,
       testId,
       { planId: planContext.planId, index: nextIndex },
-      "Naechster Test gestartet.",
+      "status.nextStarted",
     );
   }, [planContext, library, beginTest, backToPlan]);
 
@@ -257,7 +277,7 @@ export default function App() {
       if (!prev.payload) return prev;
       return createSessionFromPayload(
         prev.payload,
-        "Bereit fuer einen neuen Durchlauf.",
+        "status.readyAgain",
       );
     });
     setCurrentAnswer("");
@@ -290,11 +310,11 @@ export default function App() {
         handlePayloadError(
           error instanceof Error
             ? error.message
-            : "Bibliothek konnte nicht geladen werden.",
+            : t("setup.invalidPayload"),
         );
       }
     },
-    [handlePayloadError],
+    [handlePayloadError, t],
   );
 
   const copyPlanGrading = useCallback(async () => {
@@ -378,7 +398,7 @@ export default function App() {
         roundEnded: false,
         readRemaining: prev.settings.readSeconds,
         writeRemaining: prev.settings.writeSeconds,
-        message: "Frage 1 gestartet.",
+        message: "status.questionStarted:1",
       };
     });
   };
@@ -413,7 +433,7 @@ export default function App() {
         solutionRemaining: 0,
         solutionTitle: "",
         solutionParts: [],
-        message: `Frage ${nextIndex + 1} gestartet.`,
+        message: `status.questionStarted:${nextIndex + 1}`,
       };
     });
   };
@@ -436,7 +456,7 @@ export default function App() {
       return {
         ...state,
         finished: true,
-        message: "Test beendet. Export ist bereit.",
+        message: "status.finished",
       };
     });
   };
@@ -455,7 +475,7 @@ export default function App() {
       const parts =
         question.solution.length > 0
           ? question.solution
-          : ["Keine Loesung in der Payload vorhanden."];
+          : [t("solution.empty")];
 
       const nextRequests = [...prev.solutionRequests];
       nextRequests[currentIndex] = used + 1;
@@ -465,7 +485,7 @@ export default function App() {
         solutionRequests: nextRequests,
         solutionRemaining: settings.solutionSeconds,
         solutionVisible: true,
-        solutionTitle: `${question.title} · Loesung`,
+        solutionTitle: t("solution.title", { title: question.title }),
         solutionParts: parts,
       };
     });
@@ -485,7 +505,7 @@ export default function App() {
     await copyText(text);
     setSession((prev) => ({
       ...prev,
-      message: "Antworten kopiert.",
+      message: "done.answersCopied",
     }));
   };
 
@@ -526,7 +546,7 @@ export default function App() {
   } else if (step === "setup") {
     content = (
       <SetupStep
-        message={session.message}
+        message={translateMessage(session.message)}
         tests={listTests(library)}
         plans={listPlans(library)}
         onLoad={handleImport}
@@ -608,10 +628,10 @@ export default function App() {
           }
           nextLabel={
             !hasAnswerInput
-              ? "Ueberspringen"
+              ? t("answer.skip")
               : hasMoreQuestions
-                ? "Naechste Frage"
-                : "Frage abschliessen"
+                ? t("keyboard.next")
+                : t("answer.finishQuestion")
           }
           nextDisabled={false}
           onAnswerChange={handleAnswerChange}
@@ -629,6 +649,8 @@ export default function App() {
     <>
       {content}
       <ThemeToggle />
+      <GitHubAccessDialog />
+      <LanguageToggle />
       <KeyboardShortcutsHelp step={step} />
     </>
   );

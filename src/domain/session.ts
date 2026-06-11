@@ -229,7 +229,7 @@ export function getAnswerPlaceholder(state: {
   readRemaining: number;
 }): string {
   if (state.roundEnded) {
-    return "Optional noch ergaenzen, dann weiter...";
+    return "Optional noch ergänzen, dann weiter...";
   }
 
   if (state.readRemaining > 0) {

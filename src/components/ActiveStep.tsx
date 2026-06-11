@@ -10,6 +10,7 @@ import { EndTestButton } from "./EndTestButton";
 import { QuestionPanel } from "./QuestionPanel";
 import { SolutionPanel } from "./SolutionPanel";
 import { MockModeBadge } from "./MockModeBadge";
+import { useI18n } from "../i18n";
 
 type ActiveStepProps = {
   mockMode?: boolean;
@@ -68,6 +69,7 @@ export function ActiveStep({
   onEndTest,
   onSolution,
 }: ActiveStepProps) {
+  const { t } = useI18n();
   const testTime = getTestTimeState({
     questionNumber,
     totalQuestions,
@@ -86,7 +88,7 @@ export function ActiveStep({
             {mockMode && <MockModeBadge />}
             <div className="min-w-0">
               <p className="text-[10px] font-medium uppercase tracking-[0.14em] text-neutral-500 dark:text-neutral-500">
-                Test
+                {t("active.test")}
               </p>
               <h1 className="truncate text-base font-semibold tracking-tight text-neutral-900 dark:text-neutral-100 sm:text-lg">
                 {payload.title}
@@ -95,7 +97,7 @@ export function ActiveStep({
           </div>
           <CircularTimer
             minimal
-            label="Gesamt"
+            label={t("active.total")}
             icon={Timer}
             remaining={testTime.remaining}
             total={testTime.total}
@@ -103,17 +105,17 @@ export function ActiveStep({
         </div>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-3 py-6 sm:px-5 sm:py-8">
+      <main className="active-test-main flex min-h-0 flex-1 flex-col items-center justify-[safe_center] overflow-y-auto px-3 py-6 sm:px-5 sm:py-8">
         <LayoutGroup>
           <motion.div
             layout
             transition={{ layout: layoutTransition }}
-            className="flex w-full max-w-2xl flex-col gap-6 sm:gap-8"
+            className="active-test-stack flex w-full max-w-2xl flex-col gap-6 sm:gap-8"
           >
             <motion.div
               layout
               transition={{ layout: layoutTransition }}
-              className="flex w-full flex-col gap-4 sm:gap-5"
+              className="active-test-question-stack flex w-full flex-col gap-4 sm:gap-5"
             >
               <QuestionPanel
                 payload={payload}
@@ -135,7 +137,7 @@ export function ActiveStep({
             <motion.div
               layout
               transition={{ layout: layoutTransition }}
-              className="flex w-full flex-col gap-3"
+              className="active-test-answer-stack flex w-full flex-col gap-3"
             >
             <AnswerPanel
               question={question}

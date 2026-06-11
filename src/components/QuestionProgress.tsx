@@ -5,6 +5,7 @@ import {
   getSequentialSegmentFill,
   getTestTimeState,
 } from "../domain/session";
+import { useI18n } from "../i18n";
 
 type QuestionProgressBaseProps = {
   questionNumber: number;
@@ -28,13 +29,10 @@ function ProgressLabel({
   questionNumber,
   totalQuestions,
 }: QuestionProgressBaseProps) {
+  const { t } = useI18n();
   return (
     <span className="text-xs text-neutral-500 dark:text-neutral-500">
-      Frage{" "}
-      <span className="font-semibold tabular-nums text-neutral-800 dark:text-neutral-200">
-        {questionNumber}
-      </span>
-      <span className="tabular-nums text-neutral-400 dark:text-neutral-600"> / {totalQuestions}</span>
+      {t("progress.question", { current: questionNumber, total: totalQuestions })}
     </span>
   );
 }
@@ -79,6 +77,7 @@ export function QuestionProgressBlock({
   readSeconds,
   writeSeconds,
 }: QuestionProgressHeaderProps) {
+  const { t } = useI18n();
   const timerProps = {
     roundEnded,
     readRemaining,
@@ -105,7 +104,7 @@ export function QuestionProgressBlock({
       </div>
       {wordCount !== undefined ? (
         <span className="shrink-0 pb-px text-[11px] tabular-nums text-neutral-400 dark:text-neutral-600">
-          {wordCount} Woerter
+          {t("answer.words", { count: wordCount })}
         </span>
       ) : null}
     </div>
@@ -121,6 +120,7 @@ export function QuestionProgressBar({
   readSeconds,
   writeSeconds,
 }: QuestionProgressBaseProps & QuestionTimerProps) {
+  const { t } = useI18n();
   const test = getTestTimeState({
     questionNumber,
     totalQuestions,
@@ -139,7 +139,7 @@ export function QuestionProgressBar({
       aria-valuenow={Math.round(test.remaining)}
       aria-valuemin={0}
       aria-valuemax={test.total}
-      aria-label={`${formatTime(test.remaining)} vom Test verbleibend`}
+      aria-label={t("progress.remaining", { time: formatTime(test.remaining) })}
     >
       {Array.from({ length: totalQuestions }, (_, index) => {
         const segmentFill = getSequentialSegmentFill(

@@ -56,7 +56,7 @@ export function buildExportText(input: ExportInput): string {
   const lines = [
     "Bitte bewerte meine Antworten zu diesem Recall-Test.",
     "Gib pro Frage kurzes Feedback (richtig / teilweise / falsch und was fehlt)",
-    "und am Ende eine Gesamteinschaetzung mit ein paar Lerntipps.",
+    "und am Ende eine Gesamteinschätzung mit ein paar Lerntipps.",
     "Formeln in deiner Antwort bitte mit \\(...\\) und \\[...\\] schreiben, nicht mit Dollarzeichen.",
     "",
     `Test: ${payload?.title || "Recall Benchmark"}`,
@@ -96,7 +96,7 @@ function appendQuestionBlocks(
 
     const reference = getReferenceSolution(question);
     if (reference) {
-      lines.push(`Musterloesung: ${reference}`);
+      lines.push(`Musterlösung: ${reference}`);
     }
 
     lines.push("");
@@ -111,7 +111,7 @@ export function buildPlanGradingExport(
   const lines = [
     `Bitte bewerte meine Antworten zu diesem Lernplan: ${planTitle}.`,
     "Gib pro Test und Frage kurzes Feedback (richtig / teilweise / falsch und",
-    "was fehlt) und am Ende eine Gesamteinschaetzung mit Lerntipps pro Test.",
+    "was fehlt) und am Ende eine Gesamteinschätzung mit Lerntipps pro Test.",
     "Formeln in deiner Antwort bitte mit \\(...\\) und \\[...\\] schreiben, nicht mit Dollarzeichen.",
     "",
   ];

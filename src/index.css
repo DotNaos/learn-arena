@@ -162,6 +162,18 @@ button:not(:disabled) {
   color: rgb(212 212 212);
 }
 
+.question-prompt .katex-display {
+  margin: 0.28em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.02em 0;
+}
+
+.question-prompt .katex-display > .katex {
+  max-width: 100%;
+  white-space: normal;
+}
+
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans:
@@ -285,5 +297,35 @@ button:not(:disabled) {
   }
   html {
     @apply font-sans;
+  }
+}
+
+@media (max-height: 640px) {
+  .active-test-main {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .active-test-stack {
+    gap: 1rem;
+  }
+
+  .active-test-question-stack,
+  .active-test-answer-stack {
+    gap: 0.75rem;
+  }
+
+  .choice-list {
+    gap: 0.5rem;
+    padding: 0.75rem;
+  }
+
+  .choice-list-option {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .answer-panel-toolbar {
+    padding-bottom: 0.75rem;
   }
 }

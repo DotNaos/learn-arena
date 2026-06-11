@@ -7,6 +7,7 @@ import {
   Upload,
 } from "lucide-react";
 import type { LearnPlan, LibraryTest } from "../domain/library";
+import { useI18n } from "../i18n";
 
 type LibraryPanelProps = {
   tests: LibraryTest[];
@@ -29,6 +30,7 @@ export function LibraryPanel({
   onExport,
   onImportFile,
 }: LibraryPanelProps) {
+  const { t } = useI18n();
   const fileRef = useRef<HTMLInputElement>(null);
 
   if (tests.length === 0 && plans.length === 0) return null;
@@ -37,7 +39,7 @@ export function LibraryPanel({
     <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-neutral-100/50 dark:bg-neutral-900/40 p-4">
       <div className="mb-3 flex items-center justify-between">
         <p className="text-[11px] font-medium uppercase tracking-wide text-neutral-400 dark:text-neutral-600">
-          Meine Bibliothek
+          {t("library.title")}
         </p>
         <div className="flex items-center gap-1">
           <input
@@ -53,8 +55,8 @@ export function LibraryPanel({
           />
           <button
             type="button"
-            aria-label="Bibliothek importieren"
-            title="Bibliothek importieren"
+            aria-label={t("library.import")}
+            title={t("library.import")}
             onClick={() => fileRef.current?.click()}
             className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-neutral-400 dark:text-neutral-600 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300"
           >
@@ -62,8 +64,8 @@ export function LibraryPanel({
           </button>
           <button
             type="button"
-            aria-label="Bibliothek exportieren"
-            title="Bibliothek als Datei sichern"
+            aria-label={t("library.export")}
+            title={t("library.export")}
             onClick={onExport}
             className="inline-flex h-7 w-7 items-center justify-center rounded-lg text-neutral-400 dark:text-neutral-600 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800 hover:text-neutral-700 dark:hover:text-neutral-300"
           >
@@ -78,7 +80,8 @@ export function LibraryPanel({
             key={plan.id}
             icon={<Layers className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />}
             title={plan.title}
-            meta={`Lernplan · ${plan.testIds.length} ${plan.testIds.length === 1 ? "Test" : "Tests"}`}
+            meta={`${t("library.plan")} · ${t("library.testsCount", { count: plan.testIds.length })}`}
+            deleteLabel={t("library.delete")}
             onOpen={() => onOpenPlan(plan.id)}
             onDelete={() => onDeletePlan(plan.id)}
           />
@@ -88,7 +91,8 @@ export function LibraryPanel({
             key={test.id}
             icon={<FileText className="h-4 w-4 text-neutral-500 dark:text-neutral-400" />}
             title={test.payload.title}
-            meta={`${test.payload.questions.length} ${test.payload.questions.length === 1 ? "Frage" : "Fragen"}${test.lastResult ? " · erledigt" : ""}`}
+            meta={`${t("library.testCount", { count: test.payload.questions.length })}${test.lastResult ? ` · ${t("library.done")}` : ""}`}
+            deleteLabel={t("library.delete")}
             onOpen={() => onOpenTest(test.id)}
             onDelete={() => onDeleteTest(test.id)}
           />
@@ -102,11 +106,12 @@ type LibraryRowProps = {
   icon: React.ReactNode;
   title: string;
   meta: string;
+  deleteLabel: string;
   onOpen: () => void;
   onDelete: () => void;
 };
 
-function LibraryRow({ icon, title, meta, onOpen, onDelete }: LibraryRowProps) {
+function LibraryRow({ icon, title, meta, deleteLabel, onOpen, onDelete }: LibraryRowProps) {
   return (
     <div className="group flex items-center gap-2 rounded-xl border border-transparent bg-neutral-50 dark:bg-neutral-950/40 px-3 py-2 transition-colors hover:border-neutral-200 dark:hover:border-neutral-800">
       <button
@@ -126,7 +131,7 @@ function LibraryRow({ icon, title, meta, onOpen, onDelete }: LibraryRowProps) {
       </button>
       <button
         type="button"
-        aria-label="Loeschen"
+        aria-label={deleteLabel}
         onClick={onDelete}
         className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-neutral-400 dark:text-neutral-600 opacity-0 transition-all hover:bg-red-500/10 hover:text-red-500 focus-visible:opacity-100 group-hover:opacity-100"
       >

@@ -13,6 +13,7 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
 } from "./ui/alert-dialog";
+import { useI18n } from "../i18n";
 
 type EndTestButtonProps = {
   onConfirm: () => void;
@@ -20,6 +21,7 @@ type EndTestButtonProps = {
 };
 
 export function EndTestButton({ onConfirm, disabled = false }: EndTestButtonProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
 
   const handleConfirm = () => {
@@ -30,7 +32,7 @@ export function EndTestButton({ onConfirm, disabled = false }: EndTestButtonProp
   return (
     <>
       <ShortcutActionButton
-        label="Test beenden"
+        label={t("end.confirm")}
         onAction={() => setOpen(true)}
         chord={CHORD_META_SLASH}
         disabled={disabled}
@@ -46,16 +48,15 @@ export function EndTestButton({ onConfirm, disabled = false }: EndTestButtonProp
             <AlertDialogMedia className="text-amber-400">
               <LogOut />
             </AlertDialogMedia>
-            <AlertDialogTitle>Test wirklich beenden?</AlertDialogTitle>
+            <AlertDialogTitle>{t("end.title")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Der aktuelle Fortschritt bleibt gespeichert. Du kannst danach die
-              Antworten exportieren.
+              {t("end.description")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Abbrechen</AlertDialogCancel>
+            <AlertDialogCancel>{t("end.cancel")}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={handleConfirm}>
-              Test beenden
+              {t("end.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

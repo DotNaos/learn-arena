@@ -207,7 +207,7 @@ export function serializeLibrary(library: Library): string {
 export function parseLibrary(raw: string): Library {
   const parsed = JSON.parse(raw);
   if (!isLibrary(parsed)) {
-    throw new Error("Datei ist keine gueltige Learn-Arena-Bibliothek.");
+    throw new Error("Datei ist keine gültige Learn-Arena-Bibliothek.");
   }
   return parsed;
 }

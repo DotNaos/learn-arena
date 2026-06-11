@@ -161,7 +161,7 @@ function normalizePayloadObject(parsed: RawPayload): Payload {
   nextSettings.hideQuestionAfterRead = Boolean(nextSettings.hideQuestionAfterRead);
 
   if (nextSettings.readSeconds < 0 || nextSettings.writeSeconds <= 0) {
-    throw new Error("Timer-Werte sind ungueltig.");
+    throw new Error("Timer-Werte sind ungültig.");
   }
 
   if (
@@ -209,7 +209,7 @@ export function normalizeImport(raw: string): ImportResult {
       normalizePayloadObject(test as RawPayload),
     );
     if (tests.length === 0) {
-      throw new Error("Der Lernplan enthaelt keine Tests.");
+      throw new Error("Der Lernplan enthält keine Tests.");
     }
     return {
       kind: "plan",

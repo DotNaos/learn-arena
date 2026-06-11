@@ -7,6 +7,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { useI18n } from "../i18n";
 
 type SolutionControlProps = {
   solutionSeconds: number;
@@ -25,11 +26,16 @@ function getSolutionTooltip(
   roundEnded: boolean,
   remaining: number,
   max: number,
+  t: (key: string, params?: Record<string, string | number>) => string,
 ): string {
-  if (solutionVisible) return "Loesung wird angezeigt";
-  if (roundEnded) return "Antwortzeit abgelaufen";
-  if (remaining <= 0) return "Keine Reveals mehr uebrig";
-  return `Loesung ${solutionSeconds}s anzeigen (${remaining}/${max})`;
+  if (solutionVisible) return t("solution.tooltip.visible");
+  if (roundEnded) return t("solution.tooltip.expired");
+  if (remaining <= 0) return t("solution.tooltip.empty");
+  return t("solution.tooltip.show", {
+    seconds: solutionSeconds,
+    remaining,
+    max,
+  });
 }
 
 export function SolutionControl({
@@ -42,6 +48,7 @@ export function SolutionControl({
   resetDep,
   onRequest,
 }: SolutionControlProps) {
+  const { t } = useI18n();
   if (max <= 0) return null;
 
   const tooltip = getSolutionTooltip(
@@ -50,6 +57,7 @@ export function SolutionControl({
     roundEnded,
     remaining,
     max,
+    t,
   );
 
   return (
@@ -57,7 +65,7 @@ export function SolutionControl({
       <TooltipTrigger
         render={
           <ShortcutActionButton
-            label="Loesung"
+            label={t("solution.label")}
             onAction={onRequest}
             chord={CHORD_META_DOT}
             disabled={disabled}

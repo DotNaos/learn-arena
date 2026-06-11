@@ -4,6 +4,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { useI18n } from "../i18n";
 
 const SEAL_PATH = buildSinusSealPath({
   cx: 16,
@@ -54,13 +55,14 @@ function buildSinusSealPath({
 }
 
 export function MockModeBadge() {
+  const { t } = useI18n();
   return (
     <Tooltip>
       <TooltipTrigger
         render={
           <span
             role="status"
-            aria-label="Mock-Modus"
+            aria-label={t("mock.badge")}
             className="relative inline-flex h-8 w-8 shrink-0 items-center justify-center overflow-visible sm:h-9 sm:w-9"
           >
             <svg
@@ -134,7 +136,7 @@ export function MockModeBadge() {
           </span>
         }
       />
-      <TooltipContent side="bottom">Mock-Modus</TooltipContent>
+      <TooltipContent side="bottom">{t("mock.badge")}</TooltipContent>
     </Tooltip>
   );
 }

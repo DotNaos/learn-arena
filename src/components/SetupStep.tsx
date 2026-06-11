@@ -31,6 +31,7 @@ import type { LearnPlan, LibraryTest } from "../domain/library";
 import { HowToDialog } from "./HowToDialog";
 import { LibraryPanel } from "./LibraryPanel";
 import { ShortcutActionButton } from "./ShortcutActionButton";
+import { useI18n } from "../i18n";
 
 type SetupStepProps = {
   message: string;
@@ -77,6 +78,7 @@ export function SetupStep({
   onExportLibrary,
   onImportLibraryFile,
 }: SetupStepProps) {
+  const { t } = useI18n();
   const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const pasteRef = useRef<HTMLTextAreaElement>(null);
@@ -91,16 +93,16 @@ export function SetupStep({
         id: "chatgpt" as const,
         href: chatGptUrl,
         icon: <ChatGptIcon />,
-        label: "In ChatGPT öffnen",
+        label: t("setup.chatGpt"),
       },
       {
         id: "claude" as const,
         href: claudeUrl,
         icon: <ClaudeIcon />,
-        label: "In Claude öffnen",
+        label: t("setup.claude"),
       },
     ],
-    [chatGptUrl, claudeUrl],
+    [chatGptUrl, claudeUrl, t],
   );
 
   const tryLoadFromPaste = useCallback(() => {
@@ -119,10 +121,10 @@ export function SetupStep({
       onError(
         error instanceof Error
           ? error.message
-          : "Fragensatz konnte nicht geladen werden.",
+          : t("setup.invalidPayload"),
       );
     }
-  }, [onError, onLoad]);
+  }, [onError, onLoad, t]);
 
   const handleFileChange = async (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -137,7 +139,7 @@ export function SetupStep({
       onError(
         error instanceof Error
           ? error.message
-          : "Fragensatz konnte nicht geladen werden.",
+          : t("setup.invalidPayload"),
       );
     } finally {
       event.target.value = "";
@@ -164,7 +166,7 @@ export function SetupStep({
       onError(
         error instanceof Error
           ? error.message
-          : "Zwischenablage konnte nicht gelesen werden.",
+          : t("setup.invalidClipboard"),
       );
     }
   };
@@ -191,23 +193,22 @@ export function SetupStep({
           <div className="space-y-5">
             <TutorialStep step={1}>
               <p className="text-xs leading-snug text-neutral-500 dark:text-neutral-500">
-                KI-Chat öffnen — kurz sagen was du übst, PDF anhängen, fertig.
-                Optional: „will tunen“ für mehr Kontrolle.
+                {t("setup.step1")}
               </p>
               <div className="space-y-2">
                 <AiChatOpenButton options={aiChatOptions} />
                 <div className="flex items-center gap-2 py-0.5">
                   <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-                  <span className="text-[11px] text-neutral-400 dark:text-neutral-600">oder</span>
+                  <span className="text-[11px] text-neutral-400 dark:text-neutral-600">{t("setup.or")}</span>
                   <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
                 </div>
                 <ShortcutActionButton
-                  label="Prompt kopieren"
+                  label={t("setup.copyPrompt")}
                   onAction={onCopyPrompt}
                   chord={CHORD_META_COMMA}
                   icon={<MessageSquareText className="h-3 w-3" />}
                   feedback={{
-                    label: "Kopiert",
+                    label: t("common.copied"),
                     icon: <Check className="h-3 w-3" strokeWidth={2.5} />,
                   }}
                   className="inline-flex w-full items-center gap-1.5 rounded-md px-2 py-1.5 text-[11px] text-neutral-500 dark:text-neutral-500 transition-colors hover:bg-neutral-100/60 dark:hover:bg-neutral-900/60 hover:text-neutral-700 dark:hover:text-neutral-300"
@@ -217,19 +218,17 @@ export function SetupStep({
 
             <TutorialStep step={2}>
               <p className="text-xs leading-snug text-neutral-500 dark:text-neutral-500">
-                Nach dem Gespräch liefert die KI einen{" "}
-                <span className="text-neutral-600 dark:text-neutral-400">json</span>-Codeblock — den
-                komplett kopieren.
+                {t("setup.step2")}
               </p>
             </TutorialStep>
 
             <TutorialStep step={3}>
               <p className="text-xs leading-snug text-neutral-500 dark:text-neutral-500">
-                JSON hier einfügen — der Test startet automatisch.
+                {t("setup.step3")}
               </p>
               <div className="flex flex-col items-end gap-1.5">
                 <ShortcutActionButton
-                  label="Einfügen"
+                  label={t("setup.insert")}
                   onAction={handleClipboard}
                   chord={CHORD_META_ENTER}
                   icon={<ClipboardPaste className="h-3.5 w-3.5" />}
@@ -245,7 +244,7 @@ export function SetupStep({
                     onClick={() => setMoreOptionsOpen((open) => !open)}
                     className="inline-flex items-center gap-1 text-[11px] text-neutral-400 dark:text-neutral-600 transition-colors hover:text-neutral-600 dark:hover:text-neutral-400"
                   >
-                    Weitere Optionen
+                    {t("setup.more")}
                     <ChevronDown
                       className={`h-3 w-3 transition-transform ${moreOptionsOpen ? "rotate-180" : ""}`}
                       aria-hidden
@@ -254,7 +253,7 @@ export function SetupStep({
                   {moreOptionsOpen && (
                     <div
                       role="dialog"
-                      aria-label="Weitere Import-Optionen"
+                      aria-label={t("setup.uploadOptions")}
                       className="absolute right-0 bottom-[calc(100%+0.375rem)] z-10 w-72 space-y-3 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 p-4 shadow-xl shadow-black/40"
                     >
                       <textarea
@@ -265,11 +264,11 @@ export function SetupStep({
                         onPaste={() => window.setTimeout(tryLoadFromPaste, 0)}
                         onInput={() => window.setTimeout(tryLoadFromPaste, 0)}
                         className="block h-20 w-full resize-none bg-transparent px-0 py-0 text-xs text-neutral-900 dark:text-neutral-100 outline-none placeholder:text-neutral-400 dark:placeholder:text-neutral-600"
-                        placeholder="JSON einfügen…"
+                        placeholder={t("setup.pastePlaceholder")}
                       />
                       <div className="flex items-center gap-2 py-0.5">
                         <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
-                        <span className="text-[11px] text-neutral-400 dark:text-neutral-600">oder</span>
+                        <span className="text-[11px] text-neutral-400 dark:text-neutral-600">{t("setup.or")}</span>
                         <div className="h-px flex-1 bg-neutral-200 dark:bg-neutral-800" />
                       </div>
                       <button
@@ -278,7 +277,7 @@ export function SetupStep({
                         className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-neutral-100 dark:bg-neutral-900 px-3 py-2.5 text-xs text-neutral-700 dark:text-neutral-300 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
                       >
                         <Upload className="h-3 w-3" />
-                        Datei hochladen
+                        {t("setup.fileUpload")}
                       </button>
                     </div>
                   )}
