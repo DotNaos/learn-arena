@@ -6,6 +6,7 @@ type AnswerEditorProps = {
   placeholder: string;
   disabled: boolean;
   questionNumber?: number;
+  fillHeight?: boolean;
   onChange: (value: string) => void;
 };
 
@@ -14,6 +15,7 @@ export function AnswerEditor({
   placeholder,
   disabled,
   questionNumber,
+  fillHeight = false,
   onChange,
 }: AnswerEditorProps) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -34,6 +36,7 @@ export function AnswerEditor({
     <div
       ref={rootRef}
       data-disabled={disabled ? "true" : "false"}
+      data-fill-height={fillHeight ? "true" : "false"}
       className="answer-composer-editor"
       onKeyDownCapture={(event) => {
         if (

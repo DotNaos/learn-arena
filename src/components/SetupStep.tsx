@@ -44,6 +44,8 @@ type SetupStepProps = {
   onOpenPlan: (id: string) => void;
   onDeleteTest: (id: string) => void;
   onDeletePlan: (id: string) => void;
+  onShareTest: (id: string) => void;
+  onSharePlan: (id: string) => void;
   onExportLibrary: () => void;
   onImportLibraryFile: (file: File) => void;
 };
@@ -75,6 +77,8 @@ export function SetupStep({
   onOpenPlan,
   onDeleteTest,
   onDeletePlan,
+  onShareTest,
+  onSharePlan,
   onExportLibrary,
   onImportLibraryFile,
 }: SetupStepProps) {
@@ -293,6 +297,8 @@ export function SetupStep({
             onOpenPlan={onOpenPlan}
             onDeleteTest={onDeleteTest}
             onDeletePlan={onDeletePlan}
+            onShareTest={onShareTest}
+            onSharePlan={onSharePlan}
             onExport={onExportLibrary}
             onImportFile={onImportLibraryFile}
           />

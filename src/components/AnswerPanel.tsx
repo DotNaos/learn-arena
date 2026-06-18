@@ -13,6 +13,7 @@ type AnswerPanelProps = {
   question?: Question | null;
   value: string;
   disabled: boolean;
+  layout?: "stacked" | "split";
   roundEnded?: boolean;
   readRemaining?: number;
   writeRemaining?: number;
@@ -37,6 +38,7 @@ export function AnswerPanel({
   question,
   value,
   disabled,
+  layout = "stacked",
   roundEnded = false,
   readRemaining = 0,
   writeRemaining = 0,
@@ -70,9 +72,10 @@ export function AnswerPanel({
   const showToolbar = onNext || showSolutionControl;
   const showProgress = totalQuestions > 0 && questionNumber !== undefined;
   const wordCount = choiceMode ? undefined : countWords(value);
+  const splitLayout = layout === "split";
 
   return (
-    <div className="w-full">
+    <div className={`w-full ${splitLayout ? "flex min-h-0 flex-1 flex-col" : ""}`}>
       {showProgress ? (
         <QuestionProgressBlock
           questionNumber={questionNumber}
@@ -91,7 +94,10 @@ export function AnswerPanel({
           </span>
         </div>
       )}
-      <div className="w-full overflow-hidden rounded-3xl border border-neutral-200/90 dark:border-neutral-800/90 bg-neutral-100/50 dark:bg-neutral-900/50 shadow-sm">
+      <div
+        data-layout={layout}
+        className={`answer-panel-frame w-full overflow-hidden rounded-3xl border border-neutral-200/90 dark:border-neutral-800/90 bg-neutral-100/50 dark:bg-neutral-900/50 shadow-sm ${splitLayout ? "flex min-h-0 flex-1 flex-col" : ""}`}
+      >
         {choiceMode && question ? (
           <ChoiceList
             question={question}
@@ -106,6 +112,7 @@ export function AnswerPanel({
             placeholder={placeholder}
             disabled={disabled}
             questionNumber={questionNumber}
+            fillHeight={splitLayout}
             onChange={onChange}
           />
         )}

@@ -14,6 +14,8 @@ export type LibraryTest = {
   createdAt: string;
   updatedAt: string;
   lastResult?: TestResult;
+  /** Content hash under which this test was shared, if ever. */
+  shareHash?: string;
 };
 
 export type LearnPlan = {
@@ -22,6 +24,8 @@ export type LearnPlan = {
   testIds: string[];
   createdAt: string;
   updatedAt: string;
+  /** Content hash under which this plan was shared, if ever. */
+  shareHash?: string;
 };
 
 export type Library = {
@@ -179,6 +183,52 @@ export function recordResult(
       [testId]: { ...test, lastResult: result, updatedAt: result.completedAt },
     },
   };
+}
+
+/** Remember the content hash under which a test was shared. */
+export function setTestShareHash(
+  library: Library,
+  id: string,
+  shareHash: string,
+): Library {
+  const test = library.tests[id];
+  if (!test || test.shareHash === shareHash) return library;
+  return {
+    ...library,
+    tests: { ...library.tests, [id]: { ...test, shareHash } },
+  };
+}
+
+/** Remember the content hash under which a plan was shared. */
+export function setPlanShareHash(
+  library: Library,
+  id: string,
+  shareHash: string,
+): Library {
+  const plan = library.plans[id];
+  if (!plan || plan.shareHash === shareHash) return library;
+  return {
+    ...library,
+    plans: { ...library.plans, [id]: { ...plan, shareHash } },
+  };
+}
+
+export function findTestByShareHash(
+  library: Library,
+  shareHash: string,
+): LibraryTest | undefined {
+  return Object.values(library.tests).find(
+    (test) => test.shareHash === shareHash,
+  );
+}
+
+export function findPlanByShareHash(
+  library: Library,
+  shareHash: string,
+): LearnPlan | undefined {
+  return Object.values(library.plans).find(
+    (plan) => plan.shareHash === shareHash,
+  );
 }
 
 export function listTests(library: Library): LibraryTest[] {

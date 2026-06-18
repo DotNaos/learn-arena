@@ -12,10 +12,12 @@ import {
   downloadText,
   serializePayload,
 } from "./domain/export";
-import { normalizeImport } from "./domain/payload";
+import { normalizeImport, type Payload } from "./domain/payload";
 import { buildPayloadGenerationPrompt } from "./domain/payloadSchema";
 import {
   addTest,
+  findPlanByShareHash,
+  findTestByShareHash,
   getPlanTests,
   importPlan,
   listPlans,
@@ -28,7 +30,11 @@ import {
   removeTest,
   saveLibrary,
   serializeLibrary,
+  setPlanShareHash,
+  setTestShareHash,
 } from "./domain/library";
+import { fetchShare, parseShareHash, type Shareable } from "./domain/share";
+import { ShareDialog } from "./components/ShareDialog";
 import {
   createInitialSessionState,
   getSolutionRevealsRemaining,
@@ -109,7 +115,13 @@ export default function App() {
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
   const [currentTestId, setCurrentTestId] = useState<string | null>(null);
   const [planContext, setPlanContext] = useState<PlanContext | null>(null);
+  const [shareCtx, setShareCtx] = useState<{
+    shareable: Shareable;
+    onShared?: (hash: string) => void;
+    existingHash?: string;
+  } | null>(null);
   const recordedRef = useRef(false);
+  const shareLinkHandledRef = useRef(false);
 
   const step = getWizardStep(session);
   const translateMessage = useCallback(
@@ -163,8 +175,10 @@ export default function App() {
   );
 
   // Import a pasted blob: either a single test (-> ready screen) or a whole plan.
+  // When the content arrived via a share link, `shareHash` is recorded so the
+  // same link is recognized locally next time (no re-download).
   const handleImport = useCallback(
-    (raw: string) => {
+    (raw: string, shareHash?: string) => {
       const result = normalizeImport(raw);
 
       if (result.kind === "plan") {
@@ -173,14 +187,14 @@ export default function App() {
           result.title,
           result.tests,
         );
-        setLibrary(next);
+        setLibrary(shareHash ? setPlanShareHash(next, planId, shareHash) : next);
         setActivePlanId(planId);
         setHomeView("plan");
         return;
       }
 
       const { library: next, id } = addTest(library, result.payload);
-      setLibrary(next);
+      setLibrary(shareHash ? setTestShareHash(next, id, shareHash) : next);
       beginTest(
         result.payload,
         id,
@@ -331,6 +345,77 @@ export default function App() {
     );
     await copyText(text);
   }, [activePlanId, library]);
+
+  const shareTest = useCallback(
+    (payload: Payload, testId: string | null, existingHash?: string) => {
+      setShareCtx({
+        shareable: { kind: "test", payload },
+        existingHash,
+        onShared: testId
+          ? (hash) => setLibrary((lib) => setTestShareHash(lib, testId, hash))
+          : undefined,
+      });
+    },
+    [],
+  );
+
+  const shareTestById = useCallback(
+    (id: string) => {
+      const test = library.tests[id];
+      if (test) shareTest(test.payload, id, test.shareHash);
+    },
+    [library, shareTest],
+  );
+
+  const sharePlanById = useCallback(
+    (id: string) => {
+      const plan = library.plans[id];
+      if (!plan) return;
+      const tests = getPlanTests(library, plan);
+      if (tests.length === 0) return;
+      setShareCtx({
+        shareable: {
+          kind: "plan",
+          title: plan.title,
+          tests: tests.map((test) => test.payload),
+        },
+        existingHash: plan.shareHash,
+        onShared: (hash) => setLibrary((lib) => setPlanShareHash(lib, id, hash)),
+      });
+    },
+    [library],
+  );
+
+  // Open a share link: `/share/<hash>`. Reuse already-imported content when the
+  // hash is known locally (no second download), otherwise fetch it once and
+  // import it like an uploaded file. The ref guard makes this run exactly once
+  // (also under StrictMode's double-invoked effects in dev).
+  useEffect(() => {
+    if (shareLinkHandledRef.current) return;
+    const hash = parseShareHash(window.location.pathname);
+    if (!hash) return;
+    shareLinkHandledRef.current = true;
+    window.history.replaceState(null, "", "/");
+
+    const lib = loadLibrary();
+    const localTest = findTestByShareHash(lib, hash);
+    if (localTest) {
+      beginTest(localTest.payload, localTest.id, null, "status.loaded");
+      return;
+    }
+    const localPlan = findPlanByShareHash(lib, hash);
+    if (localPlan) {
+      setActivePlanId(localPlan.id);
+      setHomeView("plan");
+      return;
+    }
+
+    fetchShare(hash)
+      .then((raw) => handleImport(raw, hash))
+      .catch(() => handlePayloadError("share.fetchError"));
+    // Mount-only: the share link is read from the URL exactly once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const { started, finished, roundEnded, payload } = session;
@@ -556,6 +641,8 @@ export default function App() {
         onOpenPlan={openPlan}
         onDeleteTest={deleteTest}
         onDeletePlan={deletePlan}
+        onShareTest={shareTestById}
+        onSharePlan={sharePlanById}
         onExportLibrary={exportLibrary}
         onImportLibraryFile={importLibraryFile}
       />
@@ -582,9 +669,17 @@ export default function App() {
         payload={session.payload}
         planActive={planActive}
         hasNextInPlan={hasNextInPlan}
+        shared={Boolean(currentTestId && library.tests[currentTestId]?.shareHash)}
         onCopy={handleCopy}
         onDownloadAnswers={handleDownloadAnswers}
         onDownloadPayload={handleDownloadPayload}
+        onShare={() =>
+          shareTest(
+            session.payload!,
+            currentTestId,
+            currentTestId ? library.tests[currentTestId]?.shareHash : undefined,
+          )
+        }
         onRetry={retryTest}
         onReset={resetToSetup}
         onNextInPlan={nextInPlan}
@@ -648,6 +743,12 @@ export default function App() {
   return (
     <>
       {content}
+      <ShareDialog
+        shareable={shareCtx?.shareable ?? null}
+        existingHash={shareCtx?.existingHash}
+        onShared={shareCtx?.onShared}
+        onClose={() => setShareCtx(null)}
+      />
       <ThemeToggle />
       <GitHubAccessDialog />
       <LanguageToggle />

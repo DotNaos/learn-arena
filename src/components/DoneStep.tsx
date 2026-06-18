@@ -7,7 +7,9 @@ import {
   ExternalLink,
   FileUp,
   Layers,
+  Link2,
   RotateCcw,
+  Share2,
 } from "lucide-react";
 import {
   CHORD_META_1,
@@ -24,9 +26,11 @@ type DoneStepProps = {
   payload: Payload;
   planActive?: boolean;
   hasNextInPlan?: boolean;
+  shared?: boolean;
   onCopy: () => void;
   onDownloadAnswers: () => void;
   onDownloadPayload: () => void;
+  onShare: () => void;
   onRetry: () => void;
   onReset: () => void;
   onNextInPlan?: () => void;
@@ -37,9 +41,11 @@ export function DoneStep({
   payload,
   planActive = false,
   hasNextInPlan = false,
+  shared = false,
   onCopy,
   onDownloadAnswers,
   onDownloadPayload,
+  onShare,
   onRetry,
   onReset,
   onNextInPlan,
@@ -166,6 +172,18 @@ export function DoneStep({
                 labelClassName="text-xs font-medium text-neutral-700 dark:text-neutral-300"
                 className="inline-flex w-full items-center gap-2 rounded-lg bg-neutral-100 dark:bg-neutral-900 px-3 py-2.5 text-xs text-neutral-700 dark:text-neutral-300 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
               />
+              <button
+                type="button"
+                onClick={onShare}
+                className="inline-flex w-full items-center gap-2 rounded-lg bg-neutral-100 dark:bg-neutral-900 px-3 py-2.5 text-xs font-medium text-neutral-700 dark:text-neutral-300 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              >
+                {shared ? (
+                  <Link2 className="h-3.5 w-3.5" />
+                ) : (
+                  <Share2 className="h-3.5 w-3.5" />
+                )}
+                {shared ? t("share.copyLink") : t("share.button")}
+              </button>
             </div>
           </div>
 

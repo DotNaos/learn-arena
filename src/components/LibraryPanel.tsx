@@ -3,6 +3,8 @@ import {
   Download,
   FileText,
   Layers,
+  Link2,
+  Share2,
   Trash2,
   Upload,
 } from "lucide-react";
@@ -16,6 +18,8 @@ type LibraryPanelProps = {
   onOpenPlan: (id: string) => void;
   onDeleteTest: (id: string) => void;
   onDeletePlan: (id: string) => void;
+  onShareTest: (id: string) => void;
+  onSharePlan: (id: string) => void;
   onExport: () => void;
   onImportFile: (file: File) => void;
 };
@@ -27,6 +31,8 @@ export function LibraryPanel({
   onOpenPlan,
   onDeleteTest,
   onDeletePlan,
+  onShareTest,
+  onSharePlan,
   onExport,
   onImportFile,
 }: LibraryPanelProps) {
@@ -82,8 +88,11 @@ export function LibraryPanel({
             title={plan.title}
             meta={`${t("library.plan")} · ${t("library.testsCount", { count: plan.testIds.length })}`}
             deleteLabel={t("library.delete")}
+            shareLabel={plan.shareHash ? t("share.copyLink") : t("share.button")}
+            shared={Boolean(plan.shareHash)}
             onOpen={() => onOpenPlan(plan.id)}
             onDelete={() => onDeletePlan(plan.id)}
+            onShare={() => onSharePlan(plan.id)}
           />
         ))}
         {tests.map((test) => (
@@ -93,8 +102,11 @@ export function LibraryPanel({
             title={test.payload.title}
             meta={`${t("library.testCount", { count: test.payload.questions.length })}${test.lastResult ? ` · ${t("library.done")}` : ""}`}
             deleteLabel={t("library.delete")}
+            shareLabel={test.shareHash ? t("share.copyLink") : t("share.button")}
+            shared={Boolean(test.shareHash)}
             onOpen={() => onOpenTest(test.id)}
             onDelete={() => onDeleteTest(test.id)}
+            onShare={() => onShareTest(test.id)}
           />
         ))}
       </div>
@@ -107,11 +119,24 @@ type LibraryRowProps = {
   title: string;
   meta: string;
   deleteLabel: string;
+  shareLabel: string;
+  shared: boolean;
   onOpen: () => void;
   onDelete: () => void;
+  onShare: () => void;
 };
 
-function LibraryRow({ icon, title, meta, deleteLabel, onOpen, onDelete }: LibraryRowProps) {
+function LibraryRow({
+  icon,
+  title,
+  meta,
+  deleteLabel,
+  shareLabel,
+  shared,
+  onOpen,
+  onDelete,
+  onShare,
+}: LibraryRowProps) {
   return (
     <div className="group flex items-center gap-2 rounded-xl border border-transparent bg-neutral-50 dark:bg-neutral-950/40 px-3 py-2 transition-colors hover:border-neutral-200 dark:hover:border-neutral-800">
       <button
@@ -128,6 +153,19 @@ function LibraryRow({ icon, title, meta, deleteLabel, onOpen, onDelete }: Librar
             {meta}
           </span>
         </span>
+      </button>
+      <button
+        type="button"
+        aria-label={shareLabel}
+        title={shareLabel}
+        onClick={onShare}
+        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-neutral-400 dark:text-neutral-600 opacity-0 transition-all hover:bg-neutral-200 hover:text-neutral-700 focus-visible:opacity-100 group-hover:opacity-100 dark:hover:bg-neutral-800 dark:hover:text-neutral-300"
+      >
+        {shared ? (
+          <Link2 className="h-3.5 w-3.5" />
+        ) : (
+          <Share2 className="h-3.5 w-3.5" />
+        )}
       </button>
       <button
         type="button"
